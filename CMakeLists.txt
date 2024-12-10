@@ -16,7 +16,7 @@ set(SOURCES
 )
 
 add_library(attitude ${SOURCES})
-target_include_directories(attitude PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(attitude PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(attitude PRIVATE m)
 
