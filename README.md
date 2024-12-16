@@ -1,5 +1,3 @@
-# attitudeMathLibrary
-
 # Attitude Math Library
 
 ## Overview
@@ -133,6 +131,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Contact
 
-For questions, feedback, or collaboration, reach out to us at [your-email@example.com].
+For questions, feedback, or collaboration, reach out to us at [anthony.shivakumar@antshiv.com].
 
 
