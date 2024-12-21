@@ -83,3 +83,56 @@ int quaternion_to_axis_angle(const double q[4], double axis[3], double *angle) {
     return 1;
 }
 
+void quaternion_slerp(const double q1[4], const double q2[4], double t, double q_out[4]) {
+    double dot = q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
+
+    // Ensure shortest path
+    double q2_adjusted[4];
+    if (dot < 0.0) {
+        dot = -dot;
+        q2_adjusted[0] = -q2[0];
+        q2_adjusted[1] = -q2[1];
+        q2_adjusted[2] = -q2[2];
+        q2_adjusted[3] = -q2[3];
+    } else {
+        q2_adjusted[0] = q2[0];
+        q2_adjusted[1] = q2[1];
+        q2_adjusted[2] = q2[2];
+        q2_adjusted[3] = q2[3];
+    }
+
+    // If quaternions are nearly identical, use linear interpolation
+    if (dot > 0.9995) {
+        for (int i = 0; i < 4; ++i) {
+            q_out[i] = q1[i] + t * (q2_adjusted[i] - q1[i]);
+        }
+        quaternion_normalize(q_out);
+        return;
+    }
+
+    // Calculate SLERP
+    double theta = acos(dot);
+    double sin_theta = sin(theta);
+    double weight1 = sin((1 - t) * theta) / sin_theta;
+    double weight2 = sin(t * theta) / sin_theta;
+
+    for (int i = 0; i < 4; ++i) {
+        q_out[i] = weight1 * q1[i] + weight2 * q2_adjusted[i];
+    }
+}
+
+void axis_angle_rotate(const double axis[3], double angle, const double v_in[3], double v_out[3]) {
+    double cos_theta = cos(angle);
+    double sin_theta = sin(angle);
+
+    double dot = axis[0] * v_in[0] + axis[1] * v_in[1] + axis[2] * v_in[2];
+    double cross[3];
+    cross[0] = axis[1] * v_in[2] - axis[2] * v_in[1];
+    cross[1] = axis[2] * v_in[0] - axis[0] * v_in[2];
+    cross[2] = axis[0] * v_in[1] - axis[1] * v_in[0];
+
+    for (int i = 0; i < 3; ++i) {
+        v_out[i] = v_in[i] * cos_theta + cross[i] * sin_theta + axis[i] * dot * (1 - cos_theta);
+    }
+}
+
