@@ -1,4 +1,4 @@
-# Attitude Math Library
+# C-AML Attitude Math Library written in C
 
 ## Overview
 
