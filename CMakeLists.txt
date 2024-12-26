@@ -42,6 +42,9 @@ target_link_libraries(test_euler_random PRIVATE attitude m)
 add_executable(test_rotation tests/test_rotation.c)
 target_link_libraries(test_rotation PRIVATE attitude m)
 
+add_executable(test_quaternion tests/test_quaternion.c)
+target_link_libraries(test_quaternion PRIVATE attitude m)
+
 # Example test (optional at this stage)
 enable_testing()
 target_link_libraries(test_attitude PRIVATE attitude)

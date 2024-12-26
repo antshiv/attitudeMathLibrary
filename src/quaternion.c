@@ -21,23 +21,50 @@ void quaternion_to_dcm(const double q[4], double dcm[3][3]) {
 }
 
 void quaternion_to_euler(const double q[4], double *roll, double *pitch, double *yaw) {
-    // Placeholder: Implement proper math
     double w = q[0], x = q[1], y = q[2], z = q[3];
-    // Yaw (z), Pitch (y), Roll (x)
-    double sinr_cosp = 2.0 * (w*x + y*z);
-    double cosr_cosp = 1.0 - 2.0 * (x*x + y*y);
+
+    // Normalize quaternion
+    double norm = sqrt(w * w + x * x + y * y + z * z);
+    if (norm == 0.0) {
+        *roll = 0.0;
+        *pitch = 0.0;
+        *yaw = 0.0;
+        printf("Quaternion norm is zero, setting roll, pitch, and yaw to 0.\n");
+        return;
+    }
+    w /= norm; x /= norm; y /= norm; z /= norm;
+
+    // Compute intermediate values
+    double sinr_cosp = 2.0 * (w * x + y * z);
+    double cosr_cosp = 1.0 - 2.0 * (x * x + y * y);
     *roll = atan2(sinr_cosp, cosr_cosp);
+    printf("sinr_cosp: %f, cosr_cosp: %f, roll: %f\n", sinr_cosp, cosr_cosp, *roll);
 
-    double sinp = 2.0 * (w*y - z*x);
-    *pitch = fabs(sinp) >= 1 ? copysign(M_PI/2, sinp) : asin(sinp);
+    double sinp = 2.0 * (w * y - z * x);
+    if (fabs(sinp) >= 1.0) {
+        *pitch = copysign(M_PI / 2, sinp);
+        printf("Gimbal lock detected at pitch. sinp: %f, pitch: %f\n", sinp, *pitch);
+    } else {
+        *pitch = asin(sinp);
+        printf("sinp: %f, pitch: %f\n", sinp, *pitch);
+    }
 
-    double siny_cosp = 2.0*(w*z + x*y);
-    double cosy_cosp = 1.0 - 2.0*(y*y + z*z);
+    double siny_cosp = 2.0 * (w * z + x * y);
+    double cosy_cosp = 1.0 - 2.0 * (y * y + z * z);
     *yaw = atan2(siny_cosp, cosy_cosp);
+    printf("siny_cosp: %f, cosy_cosp: %f, yaw: %f\n", siny_cosp, cosy_cosp, *yaw);
+
+    // Print final results
+    printf("Final computed angles - Roll: %f, Pitch: %f, Yaw: %f\n", *roll, *pitch, *yaw);
 }
 
 void quaternion_normalize(double q[4]) {
-    double norm = sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
+    double norm = sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
+    
+    if (fabs(norm - 1.0) > 1e-6) {
+        printf("Quaternion is not normalized: norm = %f\n", norm);
+    }
+    
     if (norm > 0) {
         q[0]/=norm; q[1]/=norm; q[2]/=norm; q[3]/=norm;
     }
