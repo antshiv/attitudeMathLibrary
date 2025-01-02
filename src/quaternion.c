@@ -163,3 +163,68 @@ void axis_angle_rotate(const double axis[3], double angle, const double v_in[3],
     }
 }
 
+void quaternion_rotate_vector(const double q[4], const double v_in[3], double v_out[3]) {
+    // Takes a quaternion q = [w,x,y,z], input vector v_in and stores result in v_out
+    // q should be a unit quaternion (normalized)
+    
+    // Could do full quaternion multiplication q⊗v⊗q*
+    // But this optimized formula is more efficient
+    
+    double q0q0 = q[0] * q[0];
+    double q1q1 = q[1] * q[1];
+    double q2q2 = q[2] * q[2];
+    double q3q3 = q[3] * q[3];
+    
+    double q0q1 = q[0] * q[1];
+    double q0q2 = q[0] * q[2];
+    double q0q3 = q[0] * q[3];
+    double q1q2 = q[1] * q[2];
+    double q1q3 = q[1] * q[3];
+    double q2q3 = q[2] * q[3];
+    
+    // Rotation matrix elements
+    double r11 = q0q0 + q1q1 - q2q2 - q3q3;
+    double r12 = 2.0 * (q1q2 - q0q3);
+    double r13 = 2.0 * (q1q3 + q0q2);
+    
+    double r21 = 2.0 * (q1q2 + q0q3);
+    double r22 = q0q0 - q1q1 + q2q2 - q3q3;
+    double r23 = 2.0 * (q2q3 - q0q1);
+    
+    double r31 = 2.0 * (q1q3 - q0q2);
+    double r32 = 2.0 * (q2q3 + q0q1);
+    double r33 = q0q0 - q1q1 - q2q2 + q3q3;
+    
+    // Perform rotation
+    v_out[0] = r11 * v_in[0] + r12 * v_in[1] + r13 * v_in[2];
+    v_out[1] = r21 * v_in[0] + r22 * v_in[1] + r23 * v_in[2];
+    v_out[2] = r31 * v_in[0] + r32 * v_in[1] + r33 * v_in[2];
+}
+
+void quaternion_rotate_vector_explicit(const double q[4], const double v_in[3], double v_out[3]) {
+    // Convert vector to pure quaternion [0,x,y,z]
+    double v_quat[4] = {0, v_in[0], v_in[1], v_in[2]};
+    
+    // Temporary quaternions for computation
+    double temp[4], result[4];
+    
+    // First multiply: q ⊗ v
+    temp[0] = -q[1]*v_quat[1] - q[2]*v_quat[2] - q[3]*v_quat[3];
+    temp[1] =  q[0]*v_quat[1] + q[2]*v_quat[3] - q[3]*v_quat[2];
+    temp[2] =  q[0]*v_quat[2] + q[3]*v_quat[1] - q[1]*v_quat[3];
+    temp[3] =  q[0]*v_quat[3] + q[1]*v_quat[2] - q[2]*v_quat[1];
+    
+    // Conjugate of q
+    double q_conj[4] = {q[0], -q[1], -q[2], -q[3]};
+    
+    // Second multiply: (q ⊗ v) ⊗ q*
+    result[0] = -temp[1]*q_conj[1] - temp[2]*q_conj[2] - temp[3]*q_conj[3];
+    result[1] =  temp[0]*q_conj[1] + temp[2]*q_conj[3] - temp[3]*q_conj[2];
+    result[2] =  temp[0]*q_conj[2] + temp[3]*q_conj[1] - temp[1]*q_conj[3];
+    result[3] =  temp[0]*q_conj[3] + temp[1]*q_conj[2] - temp[2]*q_conj[1];
+    
+    // Extract vector part
+    v_out[0] = result[1];
+    v_out[1] = result[2];
+    v_out[2] = result[3];
+}
