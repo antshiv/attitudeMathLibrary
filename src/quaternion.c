@@ -61,13 +61,19 @@ void quaternion_to_euler(const double q[4], double *roll, double *pitch, double 
 void quaternion_normalize(double q[4]) {
     double norm = sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
     
+    // Only normalize if significantly different from 1.0
+    if (norm > 1e-6 && fabs(norm - 1.0) > 1e-6) {
+        q[0] /= norm;
+        q[1] /= norm;
+        q[2] /= norm;
+        q[3] /= norm;
+    }
+    
+    #ifdef DEBUG
     if (fabs(norm - 1.0) > 1e-6) {
         printf("Quaternion is not normalized: norm = %f\n", norm);
     }
-    
-    if (norm > 0) {
-        q[0]/=norm; q[1]/=norm; q[2]/=norm; q[3]/=norm;
-    }
+    #endif
 }
 
 void quaternion_multiply(const double q1[4], const double q2[4], double q_out[4]) {
