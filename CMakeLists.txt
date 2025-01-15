@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 project(attitude_library C)
-
 set(CMAKE_C_STANDARD 99)
 
 # Add include path
@@ -15,38 +14,26 @@ set(SOURCES
     src/attitude_utils.c
 )
 
+# Create the library
 add_library(attitude ${SOURCES})
 target_include_directories(attitude PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 target_link_libraries(attitude PRIVATE m)
 
-add_executable(test_attitude tests/test_attitude.c)
-target_link_libraries(test_attitude PRIVATE attitude m)
-
-add_executable(test_attitude_degrees tests/test_attitude_degrees.c)
-target_link_libraries(test_attitude_degrees PRIVATE attitude m)
-add_test(NAME test_attitude_degrees COMMAND test_attitude_degrees)
-
-add_executable(test_euler tests/test_euler.c)
-target_link_libraries(test_euler PRIVATE attitude m)
-
-add_executable(test_dcm_orthogonal tests/test_dcm_orthogonal.c)
-target_link_libraries(test_dcm_orthogonal PRIVATE attitude m)
-
-add_executable(test_quaternion_inverse_axis tests/test_quaternion_inverse_axis.c)
-target_link_libraries(test_quaternion_inverse_axis PRIVATE attitude m)
-
-add_executable(test_euler_random tests/test_euler_random.c)
-target_link_libraries(test_euler_random PRIVATE attitude m)
-
-add_executable(test_rotation tests/test_rotation.c)
-target_link_libraries(test_rotation PRIVATE attitude m)
-
-add_executable(test_quaternion tests/test_quaternion.c)
-target_link_libraries(test_quaternion PRIVATE attitude m)
-
-# Example test (optional at this stage)
+# Enable testing
 enable_testing()
-target_link_libraries(test_attitude PRIVATE attitude)
-add_test(NAME test_attitude COMMAND test_attitude)
 
+# Automatically find and build all test files
+file(GLOB TEST_SOURCES "tests/test_*.c")
+foreach(TEST_SOURCE ${TEST_SOURCES})
+    # Get the filename without extension
+    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
+    
+    # Create executable
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+    
+    # Link with attitude library and math library
+    target_link_libraries(${TEST_NAME} PRIVATE attitude m)
+    
+    # Add as test
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()

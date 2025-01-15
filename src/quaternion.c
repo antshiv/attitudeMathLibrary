@@ -116,39 +116,67 @@ int quaternion_to_axis_angle(const double q[4], double axis[3], double *angle) {
     return 1;
 }
 
+/**
+ * Performs Spherical Linear Interpolation (SLERP) between two quaternions.
+ * 
+ * SLERP provides smooth interpolation between two orientations represented as quaternions,
+ * maintaining constant angular velocity throughout the rotation.
+ * 
+ * @param q1[4]      First quaternion (starting orientation)
+ * @param q2[4]      Second quaternion (ending orientation)
+ * @param t          Interpolation parameter (0.0 to 1.0):
+ *                   - t = 0.0 returns q1
+ *                   - t = 1.0 returns q2
+ *                   - t = 0.5 returns the midpoint
+ * @param q_out[4]   Output quaternion (interpolated result)
+ */
 void quaternion_slerp(const double q1[4], const double q2[4], double t, double q_out[4]) {
+    // Calculate dot product to determine the angle between quaternions
     double dot = q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
 
-    // Ensure shortest path
+    // Store the adjusted version of q2 to ensure shortest path rotation
     double q2_adjusted[4];
+    
+    // If dot product is negative, take the shorter path by negating q2
+    // This is because q and -q represent the same rotation in quaternion space
     if (dot < 0.0) {
-        dot = -dot;
+        dot = -dot;  // Make dot positive for subsequent calculations
+        // Negate q2 to take shorter path
         q2_adjusted[0] = -q2[0];
         q2_adjusted[1] = -q2[1];
         q2_adjusted[2] = -q2[2];
         q2_adjusted[3] = -q2[3];
     } else {
+        // If dot is positive, use q2 as is
         q2_adjusted[0] = q2[0];
         q2_adjusted[1] = q2[1];
         q2_adjusted[2] = q2[2];
         q2_adjusted[3] = q2[3];
     }
 
-    // If quaternions are nearly identical, use linear interpolation
+    // Optimization: If quaternions are very close (dot ≈ 1), use linear interpolation
+    // This prevents numerical instability when dividing by sin(theta) for small angles
     if (dot > 0.9995) {
+        // Perform linear interpolation (LERP)
         for (int i = 0; i < 4; ++i) {
             q_out[i] = q1[i] + t * (q2_adjusted[i] - q1[i]);
         }
+        // Ensure the result is normalized to maintain unit quaternion property
         quaternion_normalize(q_out);
         return;
     }
 
-    // Calculate SLERP
+    // Calculate the angle between quaternions
     double theta = acos(dot);
     double sin_theta = sin(theta);
-    double weight1 = sin((1 - t) * theta) / sin_theta;
-    double weight2 = sin(t * theta) / sin_theta;
 
+    // Calculate interpolation weights
+    // These weights ensure constant angular velocity
+    double weight1 = sin((1 - t) * theta) / sin_theta;  // Weight for q1
+    double weight2 = sin(t * theta) / sin_theta;        // Weight for q2
+
+    // Perform the spherical interpolation
+    // This creates a rotation that smoothly transitions from q1 to q2
     for (int i = 0; i < 4; ++i) {
         q_out[i] = weight1 * q1[i] + weight2 * q2_adjusted[i];
     }
