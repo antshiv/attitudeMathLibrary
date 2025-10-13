@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-AML: C Attitude Math Library</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --primary-color: #00aaff;
+            --text-color: #f0f0f0;
+            --card-bg: #2a2a2a;
+            --border-color: #444;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        header {
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin: 0;
+        }
+        header p {
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+        .credit {
+            font-size: 0.9rem;
+            color: #777;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        math {
+            font-size: 1.6em;
+            padding: 0 0.2em;
+        }
+        .concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .concept h3 {
+            margin-top: 0;
+            color: #eee;
+        }
+        .concept p {
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+        .pros { color: #28a745; }
+        .cons { color: #dc3545; }
+
+        #interactive-explorer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+        #svg-container {
+            perspective: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+        #satellite-group {
+            transform-style: preserve-3d;
+            transform-origin: center;
+            transition: transform 0.1s linear;
+        }
+        .controls, .quaternion-display {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .slider-group label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #444;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .quaternion-output {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #111;
+            padding: 1rem;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            white-space: pre;
+        }
+        pre {
+            background-color: #111;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        code {
+            font-family: "Courier New", Courier, monospace;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #777;
+        }
+        @media (max-width: 768px) {
+            #interactive-explorer {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>C-AML: The C Attitude Math Library</h1>
+            <p>A robust C library for 3D rotations in robotics, drones, and simulation.</p>
+            <p class="credit">Created by Anthony Shivakumar with A.I help</p>
+        </header>
+
+        <div class="card">
+            <h2>What is Attitude?</h2>
+            <p>In 3D space, "attitude" refers to the orientation of an object. C-AML provides the mathematical tools to represent and manipulate attitude using three common methods.</p>
+            <div class="concept-grid">
+                <div class="concept">
+                    <h3>Euler Angles</h3>
+                    <p>Intuitive roll, pitch, and yaw angles. Easy to visualize.</p>
+                    <p class="cons">Suffer from Gimbal Lock, leading to a loss of rotational freedom.</p>
+                </div>
+                <div class="concept">
+                    <h3>Direction Cosine Matrix (DCM)</h3>
+                    <p>A 3x3 matrix that directly transforms vectors from one frame to another.</p>
+                    <p class="pros">Robust and unambiguous.</p>
+                    <p class="cons">Uses 9 numbers for 3 degrees of freedom (redundant).</p>
+                </div>
+                <div class="concept">
+                    <h3>Quaternions</h3>
+                    <p>A 4D complex number (w, x, y, z) that represents a rotation.</p>
+                    <p class="pros">Avoids gimbal lock, computationally efficient, and ideal for interpolating rotations (SLERP).</p>
+                    <p class="cons">Less intuitive to visualize directly.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Interactive Quaternion Explorer</h2>
+            <p>Use the sliders to control the rotation axis and angle. See how the object rotates and how the corresponding quaternion values change. This helps build an intuition for how a 4D quaternion represents a 3D rotation.</p>
+            <div id="interactive-explorer">
+                <div id="svg-container">
+                    <svg id="satellite-svg" width="200" height="200" viewBox="-100 -100 200 200">
+                        <g id="satellite-group">
+                            <!-- Satellite Body -->
+                            <rect x="-50" y="-30" width="100" height="60" fill="#aaa" stroke="#ccc" stroke-width="2"/>
+                            <!-- Solar Panels -->
+                            <rect x="-90" y="-10" width="40" height="20" fill="#005f73"/>
+                            <rect x="50" y="-10" width="40" height="20" fill="#005f73"/>
+                            <!-- Antenna -->
+                            <line x1="0" y1="-30" x2="0" y2="-60" stroke="#ee9b00" stroke-width="3"/>
+                            <circle cx="0" cy="-65" r="5" fill="#ee9b00"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="controls">
+                    <div class="slider-group">
+                        <label for="axisX">Rotation Axis X: <span id="axisX-val">0</span></label>
+                        <input type="range" id="axisX" min="-1" max="1" step="0.1" value="0">
+                    </div>
+                    <div class="slider-group">
+                        <label for="axisY">Rotation Axis Y: <span id="axisY-val">0</span></label>
+                        <input type="range" id="axisY" min="-1" max="1" step="0.1" value="0">
+                    </div>
+                    <div class="slider-group">
+                        <label for="axisZ">Rotation Axis Z: <span id="axisZ-val">1</span></label>
+                        <input type="range" id="axisZ" min="-1" max="1" step="0.1" value="1">
+                    </div>
+                    <div class="slider-group">
+                        <label for="angle">Angle: <span id="angle-val">0</span>°</label>
+                        <input type="range" id="angle" min="0" max="360" step="1" value="0">
+                    </div>
+                    <div class="quaternion-display">
+                        <h3>Resulting Quaternion:</h3>
+                        <div id="quaternion-output" class="quaternion-output"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>A Deep Dive into Quaternion Operations</h2>
+            <p>Here we expand on the core concepts, providing more examples and visual explanations for the most important quaternion operations in the C-AML library.</p>
+        </div>
+
+        <div class="card">
+            <h4>Encoding & Decoding: Axis-Angle ↔ Quaternion</h4>
+            <p>A rotation is defined by an axis and an angle. A quaternion encodes this information into four numbers. This is a two-way street.</p>
+            <p><b>Encoding (Axis-Angle to Quaternion):</b></p>
+            <div style="padding: 0.5rem 0;">
+                <math>
+                    <mi>w</mi><mo>=</mo><mi>cos</mi><mo>(</mo><mfrac><mrow><mi>angle</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mo>)</mo>
+                </math>
+            </div>
+            <div style="padding: 0.5rem 0;">
+                <math>
+                    <mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>z</mi><mo>)</mo><mo>=</mo><msub><mi>rotation</mi><mi>axis</mi></msub><mo>×</mo><mi>sin</mi><mo>(</mo><mfrac><mrow><mi>angle</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mo>)</mo>
+                </math>
+            </div>
+            <p><b>Decoding (Quaternion to Axis-Angle):</b></p>
+            <div style="padding: 0.5rem 0;">
+                <math>
+                    <mi>angle</mi><mo>=</mo><mn>2</mn><mo>×</mo><mi>acos</mi><mo>(</mo><mi>w</mi><mo>)</mo>
+                </math>
+            </div>
+            <div style="padding: 0.5rem 0;">
+                <math>
+                    <msub><mi>rotation</mi><mi>axis</mi></msub><mo>=</mo><mfrac><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>z</mi><mo>)</mo></mrow><mrow><msqrt><mn>1</mn><mo>-</mo><msup><mi>w</mi><mn>2</mn></msup></msqrt></mrow></mfrac>
+                </math>
+            </div>
+            <p><b>Example 1: 180-degree rotation around the X-axis</b><br/>
+            Angle = 180°, Axis = (1, 0, 0). Half-angle is 90°. <br/>
+            <code>w = cos(90°) = 0</code><br/>
+            <code>(x, y, z) = (1, 0, 0) * sin(90°) = (1, 0, 0) * 1</code><br/>
+            Resulting Quaternion: <code>(0, 1, 0, 0)</code></p>
+            <p><b>Example 2: 90-degree rotation around the Y-axis</b><br/>
+            Angle = 90°, Axis = (0, 1, 0). Half-angle is 45°. <br/>
+            <code>w = cos(45°) = 0.707</code><br/>
+            <code>(x, y, z) = (0, 1, 0) * sin(45°) = (0, 0.707, 0)</code><br/>
+            Resulting Quaternion: <code>(0.707, 0, 0.707, 0)</code></p>
+        </div>
+
+        <div class="card">
+            <h4>The "Sandwich Product": How Quaternion Rotation Works</h4>
+            <p>To rotate a 3D vector <code>v</code>, you can't just multiply it by a quaternion. The operation must lift the vector into the 4D quaternion space and then project it back down to 3D. This is achieved with the formula: 
+            <div style="padding: 0.5rem 0; text-align: center;">
+                <math>
+                    <msub><mi>v</mi><mi>rotated</mi></msub><mo>=</mo><mi>q</mi><mo>×</mo><msub><mi>v</mi><mi>pure</mi></msub><mo>×</mo><msup><mi>q</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup>
+                </math>
+            </div>
+            </p>
+            <ul>
+                <li><b><code>v_pure</code></b>: The 3D vector <code>(x, y, z)</code> is lifted into a "pure" quaternion with a zero real part: <code>(0, x, y, z)</code>.</li>
+                <li><b><code>q_inverse</code></b>: For a unit quaternion (used for rotation), the inverse is its <b>conjugate</b>: <code>(w, -x, -y, -z)</code>. This is extremely fast to compute.</li>
+            </ul>
+            <div style="text-align: center; padding: 1rem; background-color: #111; border-radius: 5px;">
+                <svg width="90%" viewBox="0 0 450 100" style="font-family: var(--font-family); font-size: 12px;">
+                    <text x="30" y="50" fill="#f0f0f0">v = (x,y,z)</text>
+                    <path d="M 90 50 L 150 50" stroke="#00aaff" stroke-width="2" marker-end="url(#arrow)"/>
+                    <text x="100" y="35" fill="#aaa">Lift to 4D</text>
+                    <text x="160" y="50" fill="#f0f0f0">v' = (0,x,y,z)</text>
+                    <path d="M 230 50 L 290 50" stroke="#00aaff" stroke-width="2" marker-end="url(#arrow)"/>
+                    <text x="235" y="35" fill="#aaa">q * v' * q'''</text>
+                    <text x="300" y="50" fill="#f0f0f0">v_rot' = (0,x',y',z')</text>
+                    <path d="M 380 50 L 440 50" stroke="#00aaff" stroke-width="2" marker-end="url(#arrow)"/>
+                    <text x="370" y="35" fill="#aaa">Project to 3D</text>
+                    <defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#00aaff"/></marker></defs>
+                </svg>
+            </div>
+            <p style="margin-top: 1rem;">The C-AML function <code>quaternion_rotate_vector_explicit()</code> performs this exact operation, while <code>quaternion_rotate_vector()</code> achieves the same result using a more computationally efficient matrix conversion internally.</p>
+        </div>
+
+        <div class="card">
+            <h4>Why Normalize? The Unit Hypersphere</h4>
+            <p>A quaternion only represents a pure rotation if its magnitude is 1. This means it lies on the surface of a 4D "hypersphere." If the magnitude is not 1, the sandwich product will also introduce scaling.</p>
+            <ul>
+                <li>Magnitude > 1: The rotated vector will be scaled up (longer).</li>
+                <li>Magnitude < 1: The rotated vector will be scaled down (shorter).</li>
+            </ul>
+            <p>Numerical errors can accumulate during repeated multiplications, causing the quaternion to drift off the hypersphere. <code>quaternion_normalize()</code> pushes it back onto the surface, ensuring pure rotation.</p>
+            <div style="text-align: center; padding: 1rem; background-color: #111; border-radius: 5px;">
+                 <svg width="80%" viewBox="0 0 300 200" style="font-family: var(--font-family); font-size: 10px;">
+                    <circle cx="150" cy="100" r="70" stroke="#00aaff" stroke-dasharray="4" fill="none"/>
+                    <text x="150" y="15" fill="#aaa" text-anchor="middle">The Unit Hypersphere (2D Analogy)</text>
+                    <circle cx="150" cy="30" r="3" fill="#f0f0f0"/>
+                    <text x="150" y="25" fill="#f0f0f0" text-anchor="middle">Pure Rotation (Magnitude=1)</text>
+                    <circle cx="230" cy="100" r="3" fill="#f0f0f0"/>
+                    <text x="230" y="95" fill="#f0f0f0" text-anchor="middle">Rotation + Scale Up</text>
+                    <circle cx="100" cy="100" r="3" fill="#f0f0f0"/>
+                    <text x="100" y="95" fill="#f0f0f0" text-anchor="middle">Rotation + Scale Down</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>The Euler Angle Problem: Why SLERP is Superior</h2>
+            <p>You asked how Euler angles relate to SLERP. This is the key reason quaternions are used for animation and smooth movement. Interpolating Euler angles directly can lead to disaster.</p>
+            <p>Imagine rotating from orientation A to B. Linearly interpolating each Euler angle (e.g., from 0° to 90° roll, 0° to 90° pitch) does <b>not</b> produce a straight, steady rotation. The path can be wobbly and unnatural.</p>
+            <p><b>SLERP (Spherical Linear Interpolation)</b>, implemented as <code>quaternion_slerp()</code>, solves this. It finds the shortest possible "great-circle" path between two quaternion orientations. This guarantees the smoothest, most direct rotation, which is exactly what you want for predictable animations and control systems.</p>
+            <div style="text-align: center; padding: 1rem; background-color: #111; border-radius: 5px;">
+                <svg width="80%" viewBox="0 0 300 200" style="font-family: var(--font-family); font-size: 10px;">
+                    <circle cx="150" cy="100" r="70" stroke="#aaa" stroke-dasharray="4" fill="none"/>
+                    <text x="150" y="15" fill="#aaa" text-anchor="middle">Path of Interpolation on the Hypersphere</text>
+                    <circle cx="80" cy="100" r="3" fill="#f0f0f0"/>
+                    <text x="70" y="95" fill="#f0f0f0">q_start</text>
+                    <circle cx="220" cy="100" r="3" fill="#f0f0f0"/>
+                    <text x="230" y="95" fill="#f0f0f0">q_end</text>
+                    <path d="M 80 100 L 220 100" stroke="#dc3545" stroke-width="1.5"/>
+                    <text x="150" y="115" fill="#dc3545" text-anchor="middle">LERP (Incorrect Path)</text>
+                    <path d="M 80 100 A 70 70 0 0 1 220 100" stroke="#28a745" stroke-width="2.5" fill="none"/>
+                    <text x="150" y="80" fill="#28a745" text-anchor="middle">SLERP (Correct, Shortest Path)</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>How to Use C-AML: A Practical Guide</h2>
+            <p>C-AML provides a flexible API for attitude conversions, vector rotations, and smooth interpolation. Here’s how to approach common tasks.</p>
+
+            <h4>1. Attitude Conversion</h4>
+            <p>The first step is often converting a known orientation (like Euler angles) into a more robust format like a quaternion.</p>
+            <pre><code>// Convert a 90-degree yaw into a quaternion
+EulerAngles e = {0.0, 0.0, 90.0, EULER_ZYX};
+double q[4];
+euler_to_quaternion(&e, q); // q is now ready for rotation
+quaternion_normalize(q);    // Always normalize after conversion!
+</code></pre>
+
+            <h4>2. Rotating a Vector: Choose the Right Tool</h4>
+            <p>The library offers multiple ways to perform rotations, each optimized for different scenarios.</p>
+            <div class="concept-grid">
+                <div class="concept">
+                    <h5>Direct Axis-Angle</h5>
+                    <code>axis_angle_rotate()</code>
+                    <p><strong>Use when:</strong> You have a physical rotation axis and angle. It's the most direct and often fastest for a single operation.</p>
+                </div>
+                <div class="concept">
+                    <h5>Optimized Quaternion Rotation</h5>
+                    <code>quaternion_rotate_vector()</code>
+                    <p><strong>Use when:</strong> You are rotating one or more vectors with the same quaternion. It's highly efficient as it uses an optimized internal matrix conversion.</p>
+                </div>
+                <div class="concept">
+                    <h5>Explicit Quaternion Math</h5>
+                    <code>quaternion_rotate_vector_explicit()</code>
+                    <p><strong>Use when:</strong> You are debugging, learning, or need to see the "pure" quaternion math (q*v*q<sup>-1</sup>) in action.</p>
+                </div>
+            </div>
+            <pre><code>// Using the optimized method:
+double v_in[3] = {1.0, 0.0, 0.0};
+double v_out[3];
+quaternion_rotate_vector(q, v_in, v_out);
+// v_out is now {0.0, 1.0, 0.0}
+</code></pre>
+
+            <h4>3. Smooth Interpolation with SLERP</h4>
+            <p>For smooth animation or transitioning between two orientations, simple linear interpolation of quaternions doesn't work. C-AML provides <strong>Spherical Linear Interpolation (SLERP)</strong> to find the shortest path on the surface of a 4D sphere, ensuring a constant angular velocity.</p>
+            <pre><code>#include "attitude/quaternion.h"
+
+// Imagine q_start is the orientation at time 0
+// and q_end is the target orientation at time 1
+double q_start[4] = {1.0, 0.0, 0.0, 0.0}; // Identity
+double q_end[4]   = {0.707, 0.0, 0.0, 0.707}; // 90-deg yaw
+
+double q_intermediate[4];
+double interpolation_factor = 0.5; // Halfway through the rotation
+
+// Get the interpolated quaternion
+quaternion_slerp(q_start, q_end, interpolation_factor, q_intermediate);
+
+// q_intermediate now represents a 45-degree yaw
+</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>Why C-AML is Fundamental</h2>
+            <p>This library isn't just code; it's a foundational toolkit for any project that needs to understand and control orientation in 3D space. Reliable attitude math is the bedrock of:</p>
+            <ul>
+                <li><b>Aerospace:</b> Satellite orientation, drone flight controllers, aircraft navigation.</li>
+                <li><b>Robotics:</b> Manipulator arm positioning (kinematics), mobile robot navigation.</li>
+                <li><b>3D Graphics & VR:</b> Camera controls, object placement, and character animation.</li>
+                <li><b>Simulation:</b> Accurately modeling the physics of rotating bodies.</li>
+            </ul>
+            <p>By providing a fast, reliable, and C-based implementation, C-AML is perfect for performance-critical and embedded applications.</p>
+        </div>
+
+        <footer>
+            <p>This infographic was generated to explain the C Attitude Math Library.</p>
+            <p>Licensed under the MIT License.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const axisXSlider = document.getElementById('axisX');
+            const axisYSlider = document.getElementById('axisY');
+            const axisZSlider = document.getElementById('axisZ');
+            const angleSlider = document.getElementById('angle');
+
+            const axisXVal = document.getElementById('axisX-val');
+            const axisYVal = document.getElementById('axisY-val');
+            const axisZVal = document.getElementById('axisZ-val');
+            const angleVal = document.getElementById('angle-val');
+
+            const satellite = document.getElementById('satellite-group');
+            const quatOut = document.getElementById('quaternion-output');
+
+            function updateRotation() {
+                if (!satellite || !quatOut) return;
+
+                let x = parseFloat(axisXSlider.value);
+                let y = parseFloat(axisYSlider.value);
+                let z = parseFloat(axisZSlider.value);
+                const angle = parseFloat(angleSlider.value);
+
+                // Update display values
+                axisXVal.textContent = x.toFixed(2);
+                axisYVal.textContent = y.toFixed(2);
+                axisZVal.textContent = z.toFixed(2);
+                angleVal.textContent = angle.toFixed(0);
+
+                // Normalize the axis vector
+                const mag = Math.sqrt(x*x + y*y + z*z);
+                if (mag > 1e-9) {
+                    x /= mag;
+                    y /= mag;
+                    z /= mag;
+                } else {
+                    // Default to a non-rotating state if axis is zero
+                    x = 0; y = 0; z = 1; // Keep a valid axis
+                }
+
+                const angleRad = angle * Math.PI / 180.0;
+                const halfAngle = angleRad / 2.0;
+                const sinHalf = Math.sin(halfAngle);
+
+                // Calculate quaternion components
+                const qw = Math.cos(halfAngle);
+                const qx = x * sinHalf;
+                const qy = y * sinHalf;
+                const qz = z * sinHalf;
+
+                // Display quaternion
+                quatOut.innerHTML = `w: ${qw.toFixed(4)}<br>x: ${qx.toFixed(4)}<br>y: ${qy.toFixed(4)}<br>z: ${qz.toFixed(4)}`;
+
+                // Apply rotation to the SVG element using CSS 3D transform
+                satellite.style.transform = `rotate3d(${x}, ${y}, ${z}, ${angle}deg)`;
+            }
+
+            axisXSlider.addEventListener('input', updateRotation);
+            axisYSlider.addEventListener('input', updateRotation);
+            axisZSlider.addEventListener('input', updateRotation);
+            angleSlider.addEventListener('input', updateRotation);
+
+            // Initial call to set everything up
+            updateRotation();
+        });
+    </script>
+
+</body>
+</html>

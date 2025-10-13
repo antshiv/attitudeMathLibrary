@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-AML: Attitude Math Library</title>
+    <style>
+        :root {
+            --bg-color: #111827; /* Deeper background */
+            --primary-color: #38bdf8;
+            --text-color: #D1D5DB; /* Lighter body text */
+            --card-bg: #1f2937; /* Deeper card background */
+            --border-color: #374151;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            font-size: 16px; /* Explicitly set body font size */
+            line-height: 1.7;
+        }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem 2rem; /* Consistent padding */
+        }
+        h2 { color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-top: 0; margin-bottom: 1.5rem; font-size: 1.8em; }
+        h3 { color: #e5e7eb; font-size: 1.4em; margin-bottom: 1rem; }
+        h4 { color: var(--primary-color); font-size: 1.1em; margin-top: 1.5rem; }
+        code { font-family: "Fira Code", "Courier New", monospace; background-color: #111827; padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
+        .two-col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; }
+        .math-col { display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #111827; padding: 1rem; border-radius: 8px; }
+        math { font-size: 1.4em; color: var(--text-color); }
+        .link-to-test { font-size: 0.85em; color: #6b7280; margin-top: 1rem; }
+        .link-to-test code { background-color: #374151; }
+        .svg-diagram { text-align: center; padding: 1rem; background-color: #111827; border-radius: 8px; margin-top: 1rem; }
+
+        /* Interactive Explorer Styles */
+        #interactive-explorer { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; align-items: center; }
+        #svg-container { perspective: 800px; display: flex; justify-content: center; align-items: center; min-height: 300px; }
+        #satellite-group { transform-style: preserve-3d; transition: transform 0.1s linear; transform-origin: center; }
+        .controls { display: flex; flex-direction: column; gap: 1rem; }
+        .slider-group label { margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="range"] { width: 100%; }
+        .quaternion-output { font-family: monospace; background-color: #111827; padding: 1rem; border-radius: 5px; font-size: 1.1rem; white-space: pre; border: 1px solid var(--border-color); }
+
+        @media (max-width: 768px) { .two-col-layout, #interactive-explorer { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="card" style="text-align: center;">
+        <h1>C-AML: Attitude Math for Robotics & Simulation</h1>
+        <p style="font-size: 1.2em; color: #9ca3af;">A robust C library for 3D rotations, serving as the mathematical foundation for attitude control systems.</p>
+    </div>
+
+    <div class="card">
+        <h2>Primary Use Case: The `dynamic_models` Simulator</h2>
+        <p>C-AML is not a standalone library; it's a core component of the broader simulation environment. Its primary role is to provide the rotational mathematics for the <b>Newton–Euler block</b> in the rigid-body simulator.</p>
+        <ul>
+            <li>The simulator calculates forces (F) in the body frame.</li>
+            <li>To get the correct acceleration in the fixed world frame, these forces must be rotated by the body's current attitude (R).</li>
+            <li>C-AML provides the functions to generate and apply this rotation matrix (R) from a quaternion representation, enabling the core calculation: <b>a = R · F / m</b>.</li>
+        </ul>
+        <div class="link-to-test">Validation for these operations is critical. See round-trip conversion tests in <code>./build/test_attitude</code>.</div>
+    </div>
+
+            <div class="card">
+                <h2>Interactive Quaternion Explorer</h2>
+                <div id="interactive-explorer">
+                    <div id="svg-container">
+                        <svg width="250" height="250" viewBox="-100 -100 200 200">
+                            <g id="satellite-group">
+                                <rect x="-50" y="-30" width="100" height="60" fill="#4b5563" stroke="#9ca3af" stroke-width="2"/>
+                                <rect x="-90" y="-10" width="40" height="20" fill="#0e7490"/>
+                                <rect x="50" y="-10" width="40" height="20" fill="#0e7490"/>
+                                <line x1="0" y1="-30" x2="0" y2="-70" stroke="#f59e0b" stroke-width="4"/>
+                                <circle cx="0" cy="-75" r="6" fill="#f59e0b"/>
+                                <text x="0" y="5" fill="white" font-size="16" text-anchor="middle">BODY</text>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="controls">
+                        <div class="slider-group">
+                            <label for="axisX">Rotation Axis X: <span id="axisX-val">0</span></label>
+                            <input type="range" id="axisX" min="-1" max="1" step="0.1" value="0">
+                        </div>
+                        <div class="slider-group">
+                            <label for="axisY">Rotation Axis Y: <span id="axisY-val">0</span></label>
+                            <input type="range" id="axisY" min="-1" max="1" step="0.1" value="0">
+                        </div>
+                        <div class="slider-group">
+                            <label for="axisZ">Rotation Axis Z: <span id="axisZ-val">1</span></label>
+                            <input type="range" id="axisZ" min="-1" max="1" step="0.1" value="1">
+                        </div>
+                        <div class="slider-group">
+                            <label for="angle">Angle: <span id="angle-val">0</span>°</label>
+                            <input type="range" id="angle" min="0" max="360" step="1" value="0">
+                        </div>
+                        <div class="quaternion-output" id="quaternion-output"></div>
+                    </div>
+                </div>
+            </div>
+    
+                                                    <div class="card">
+    
+                                                        <h2>How Rotations Combine: An Intuitive Guide</h2>
+    
+                                                        <p>Your question gets to the heart of 3D rotations: how does a sequence of simple Euler angles produce a final orientation that seems to have a complex, non-obvious axis? The key is that <strong>rotation order matters</strong>. Let's use a real-world analogy.</p>
+    
+                                                        <div class="two-col-layout">
+    
+                                                            <div>
+    
+                                                                <h4>Scenario 1: Yaw, then Pitch</h4>
+    
+                                                                <p>1. <strong>Start</strong>: A book lies flat, spine facing you.</p>
+    
+                                                                <p>2. <strong>Yaw 90° Left</strong>: The book still lies flat, but its spine now points to your right.</p>
+    
+                                                                <p>3. <strong>Pitch 90° Up</strong>: From its new position, lift the front cover. The book is now standing vertically on its spine.</p>
+    
+                                                                <div class="svg-diagram">
+    
+                                                                    <svg width="100%" viewBox="0 0 200 80"><text x="10" y="45" font-size="12">Book Flat</text><path d="M 70 40 L 110 40" stroke="#38bdf8" stroke-width="2" marker-end="url(#w-arrow)"/><text x="75" y="30" font-size="10">Yaw 90°</text><text x="120" y="45" font-size="12">Book Vertical</text></svg>
+    
+                                                                </div>
+    
+                                                            </div>
+    
+                                                            <div>
+    
+                                                                <h4>Scenario 2: Pitch, then Yaw</h4>
+    
+                                                                <p>1. <strong>Start</strong>: The same book lies flat.</p>
+    
+                                                                <p>2. <strong>Pitch 90° Up</strong>: Lift the front cover. The book is now standing vertically, facing you.</p>
+    
+                                                                <p>3. <strong>Yaw 90° Left</strong>: From its new position, turn the book to the left. It is still vertical, but now facing left.</p>
+    
+                                                                <div class="svg-diagram">
+    
+                                                                    <svg width="100%" viewBox="0 0 200 80"><text x="10" y="45" font-size="12">Book Flat</text><path d="M 70 40 L 110 40" stroke="#38bdf8" stroke-width="2" marker-end="url(#w-arrow)"/><text x="75" y="30" font-size="10">Pitch 90°</text><text x="120" y="45" font-size="12">Book Facing Left</text></svg>
+    
+                                                                </div>
+    
+                                                            </div>
+    
+                                                        </div>
+    
+                                                        <hr style="border-color: var(--border-color); margin: 2rem 0;">
+    
+                                                        <h3>Conclusion: Composition is Key</h3>
+    
+                                                        <p>The final orientations are completely different! This is called <strong>non-commutativity</strong>. The <code>euler_to_quaternion</code> function performs this composition mathematically. It creates quaternions for the roll, pitch, and yaw, and multiplies them in a specific order (e.g., <code>q_final = q_yaw * q_pitch * q_roll</code>). The resulting <code>q_final</code> is a new quaternion that represents the single, equivalent rotation to get from the start to the end orientation in one step. This is why its axis and angle may seem complex and non-intuitive—it's the result of combining simpler rotations.</p>
+    
+                                                    </div>
+    
+                                            
+    
+                                    
+    
+                            
+    
+                    
+    
+            
+        <div class="card">
+        <h2>Quaternion Deep Dive</h2>
+        <div class="two-col-layout">
+            <div class="math-col">
+                <math>
+                    <mi>w</mi><mo>=</mo><mi>cos</mi><mo>(</mo><mfrac><mrow><mi>θ</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mo>)</mo>
+                </math>
+            </div>
+            <div>
+                <h4>Quaternion from Axis-Angle</h4>
+                <p>The <b>real</b> part (w) is the cosine of half the rotation angle (θ). For a 0° rotation, w=1 (an identity quaternion).</p>
+            </div>
+        </div>
+        <div class="two-col-layout" style="margin-top:1rem;">
+            <div class="math-col">
+                <math>
+                    <mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>z</mi><mo>)</mo><mo>=</mo><mi>axis</mi><mo>×</mo><mi>sin</mi><mo>(</mo><mfrac><mrow><mi>θ</mi></mrow><mrow><mn>2</mn></mrow></mfrac><mo>)</mo>
+                </math>
+            </div>
+            <div>
+                <p>The <b>vector</b> part (x, y, z) is the rotation axis, scaled by the sine of half the angle.</p>
+                <div class="link-to-test">See: <code>euler_to_quaternion()</code></div>
+            </div>
+        </div>
+        <hr style="border-color: var(--border-color); margin: 2rem 0;">
+        <div class="two-col-layout">
+            <div class="math-col">
+                <math>
+                    <msub><mi>v</mi><mi>rot</mi></msub><mo>=</mo><mi>q</mi><mo>×</mo><msub><mi>v</mi><mi>pure</mi></msub><mo>×</mo><msup><mi>q</mi><mrow><mo>-</mo><mn>1</mn></mrow></msup>
+                </math>
+            </div>
+            <div>
+                <h4>The Sandwich Product</h4>
+                <p>A vector is rotated by lifting it to a "pure" quaternion (w=0), then multiplying by the rotation quaternion <code>q</code> on the left and its inverse <code>q⁻¹</code> on the right.</p>
+                <div class="link-to-test">See: <code>quaternion_rotate_vector_explicit()</code></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Numerical Stability</h2>
+        <div class="two-col-layout">
+            <div>
+                <h3>Why Normalize?</h3>
+                <p>A quaternion must have a magnitude of 1 to be a pure rotation. Floating-point errors can cause it to "drift" off this unit hypersphere, introducing unwanted scaling. Normalization pulls it back.</p>
+                <div class="link-to-test">See: <code>quaternion_normalize()</code></div>
+            </div>
+            <div class="svg-diagram">
+                <svg width="100%" viewBox="0 0 200 130" style="font-family: var(--font-family); font-size: 10px;">
+                    <circle cx="100" cy="65" r="50" stroke="#38bdf8" stroke-dasharray="3" fill="none"/>
+                    <text x="100" y="10" fill="#9ca3af" text-anchor="middle">Unit Hypersphere (2D Analogy)</text>
+                    <circle cx="100" cy="15" r="3" fill="#D1D5DB"/>
+                    <text x="100" y="10" fill="#D1D5DB" text-anchor="middle" dy="-5">Pure Rotation</text>
+                    <circle cx="155" cy="65" r="3" fill="#D1D5DB"/>
+                    <text x="160" y="70" fill="#D1D5DB" text-anchor="start">+ Scaling</text>
+                </svg>
+            </div>
+        </div>
+        <hr style="border-color: var(--border-color); margin: 2rem 0;">
+        <div>
+            <h3>Gimbal Lock & Tolerances</h3>
+            <p>Euler angles can suffer from <b>Gimbal Lock</b>, where two axes align, causing a loss of a degree of rotational freedom. Quaternions avoid this entirely. However, conversions are sensitive. The recent failure in <code>test_euler_random</code> highlighted that converting from a quaternion near a gimbal lock singularity requires careful floating-point comparisons and tight error tolerances.</p>
+            <div class="link-to-test">Run: <code>./build/test_euler_random</code></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>C-AML Workflow Summary</h2>
+        <p>Here is how the library plugs into the simulation system.</p>
+        <div class="svg-diagram">
+            <svg width="100%" viewBox="0 0 400 80" style="font-family: var(--font-family); font-size: 11px;">
+                <text x="40" y="20" text-anchor="middle" fill="#D1D5DB">1. Pick Rep<tspan x="40" dy="1.2em">(Euler, Axis-Angle)</tspan></text>
+                <path d="M 85 25 L 125 25" stroke="#38bdf8" stroke-width="2" marker-end="url(#w-arrow)"/>
+                <text x="165" y="25" text-anchor="middle" fill="#D1D5DB">2. Convert with C-AML</text>
+                <path d="M 215 25 L 255 25" stroke="#38bdf8" stroke-width="2" marker-end="url(#w-arrow)"/>
+                <text x="310" y="20" text-anchor="middle" fill="#D1D5DB">3. Feed R into<tspan x="310" dy="1.2em">`dynamic_models`</tspan></text>
+                <path d="M 360 25 L 400 25" stroke="#38bdf8" stroke-width="2" marker-end="url(#w-arrow)"/>
+                <text x="425" y="25" text-anchor="middle" fill="#D1D5DB">4. Simulate</text>
+                <defs><marker id="w-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/></marker></defs>
+            </svg>
+        </div>
+    </div>
+
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sliders = ['axisX', 'axisY', 'axisZ', 'angle'];
+        const elements = sliders.reduce((acc, id) => ({ ...acc, [id]: document.getElementById(id), [`${id}Val`]: document.getElementById(`${id}-val`) }), {});
+        const satellite = document.getElementById('satellite-group');
+        const quatOut = document.getElementById('quaternion-output');
+
+        function updateRotation() {
+            if (!satellite || !quatOut) return;
+            const vals = sliders.reduce((acc, id) => ({ ...acc, [id]: parseFloat(elements[id].value) }), {});
+            elements.axisXVal.textContent = vals.axisX.toFixed(2);
+            elements.axisYVal.textContent = vals.axisY.toFixed(2);
+            elements.axisZVal.textContent = vals.axisZ.toFixed(2);
+            elements.angleVal.textContent = vals.angle.toFixed(0);
+
+            let [x, y, z] = [vals.axisX, vals.axisY, vals.axisZ];
+            const mag = Math.sqrt(x*x + y*y + z*z);
+            if (mag > 1e-9) { const invMag = 1 / mag; x *= invMag; y *= invMag; z *= invMag; }
+            else { z = 1; }
+
+            const halfAngle = (vals.angle * Math.PI / 180.0) / 2.0;
+            const sinHalf = Math.sin(halfAngle);
+            const qw = Math.cos(halfAngle);
+            const qx = x * sinHalf, qy = y * sinHalf, qz = z * sinHalf;
+
+            quatOut.innerHTML = `w: ${qw.toFixed(3)}<br>x: ${qx.toFixed(3)}<br>y: ${qy.toFixed(3)}<br>z: ${qz.toFixed(3)}`;
+            satellite.style.transform = `rotate3d(${x}, ${y}, ${z}, ${vals.angle}deg)`;
+        }
+
+        sliders.forEach(id => elements[id].addEventListener('input', updateRotation));
+        updateRotation();
+    });
+</script>
+</body>
+</html>
