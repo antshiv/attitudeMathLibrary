@@ -11,6 +11,12 @@ extern "C" {
 void dcm_to_euler(const double dcm[3][3], double *roll, double *pitch, double *yaw);
 
 /**
+ * Check if a DCM is orthonormal within a tolerance.
+ * Returns 1 when the matrix meets the tolerance, 0 otherwise.
+ */
+int dcm_is_orthonormal(const double dcm[3][3], double tol);
+
+/**
  * Convert a DCM to a quaternion
  */
 void dcm_to_quaternion(const double dcm[3][3], double q[4]);
@@ -25,4 +31,3 @@ void dcm_apply(const double dcm[3][3], const double vin[3], double vout[3]);
 #endif
 
 #endif // ATTITUDE_DCM_H
-

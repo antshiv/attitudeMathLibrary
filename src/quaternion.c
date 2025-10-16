@@ -1,5 +1,8 @@
 #include "attitude/quaternion.h"
 #include <math.h>
+#include <stdio.h>
+
+static int g_quaternion_explicit_debug = 0;
 
 void quaternion_to_dcm(const double q[4], double dcm[3][3]) {
     // q = [w, x, y, z]
@@ -29,7 +32,6 @@ void quaternion_to_euler(const double q[4], double *roll, double *pitch, double 
         *roll = 0.0;
         *pitch = 0.0;
         *yaw = 0.0;
-        printf("Quaternion norm is zero, setting roll, pitch, and yaw to 0.\n");
         return;
     }
     w /= norm; x /= norm; y /= norm; z /= norm;
@@ -38,24 +40,17 @@ void quaternion_to_euler(const double q[4], double *roll, double *pitch, double 
     double sinr_cosp = 2.0 * (w * x + y * z);
     double cosr_cosp = 1.0 - 2.0 * (x * x + y * y);
     *roll = atan2(sinr_cosp, cosr_cosp);
-    printf("sinr_cosp: %f, cosr_cosp: %f, roll: %f\n", sinr_cosp, cosr_cosp, *roll);
 
     double sinp = 2.0 * (w * y - z * x);
     if (fabs(sinp) >= 1.0) {
         *pitch = copysign(M_PI / 2, sinp);
-        printf("Gimbal lock detected at pitch. sinp: %f, pitch: %f\n", sinp, *pitch);
     } else {
         *pitch = asin(sinp);
-        printf("sinp: %f, pitch: %f\n", sinp, *pitch);
     }
 
     double siny_cosp = 2.0 * (w * z + x * y);
     double cosy_cosp = 1.0 - 2.0 * (y * y + z * z);
     *yaw = atan2(siny_cosp, cosy_cosp);
-    printf("siny_cosp: %f, cosy_cosp: %f, yaw: %f\n", siny_cosp, cosy_cosp, *yaw);
-
-    // Print final results
-    printf("Final computed angles - Roll: %f, Pitch: %f, Yaw: %f\n", *roll, *pitch, *yaw);
 }
 
 void quaternion_normalize(double q[4]) {
@@ -236,29 +231,80 @@ void quaternion_rotate_vector(const double q[4], const double v_in[3], double v_
 }
 
 void quaternion_rotate_vector_explicit(const double q[4], const double v_in[3], double v_out[3]) {
-    // Convert vector to pure quaternion [0,x,y,z]
-    double v_quat[4] = {0, v_in[0], v_in[1], v_in[2]};
-    
-    // Temporary quaternions for computation
-    double temp[4], result[4];
-    
-    // First multiply: q ⊗ v
-    temp[0] = -q[1]*v_quat[1] - q[2]*v_quat[2] - q[3]*v_quat[3];
-    temp[1] =  q[0]*v_quat[1] + q[2]*v_quat[3] - q[3]*v_quat[2];
-    temp[2] =  q[0]*v_quat[2] + q[3]*v_quat[1] - q[1]*v_quat[3];
-    temp[3] =  q[0]*v_quat[3] + q[1]*v_quat[2] - q[2]*v_quat[1];
-    
-    // Conjugate of q
-    double q_conj[4] = {q[0], -q[1], -q[2], -q[3]};
-    
-    // Second multiply: (q ⊗ v) ⊗ q*
-    result[0] = -temp[1]*q_conj[1] - temp[2]*q_conj[2] - temp[3]*q_conj[3];
-    result[1] =  temp[0]*q_conj[1] + temp[2]*q_conj[3] - temp[3]*q_conj[2];
-    result[2] =  temp[0]*q_conj[2] + temp[3]*q_conj[1] - temp[1]*q_conj[3];
-    result[3] =  temp[0]*q_conj[3] + temp[1]*q_conj[2] - temp[2]*q_conj[1];
-    
-    // Extract vector part
+    /* Educational expansion of q ⊗ v ⊗ q* with every intermediate exposed. */
+
+    /* Step 1: Promote the vector into a "pure" quaternion (scalar part = 0). */
+    double v_quat[4] = {0.0, v_in[0], v_in[1], v_in[2]};
+    if (g_quaternion_explicit_debug) {
+        printf("[explicit] Step 1 (vector→quat): [%.6f, %.6f, %.6f, %.6f]\n",
+               v_quat[0], v_quat[1], v_quat[2], v_quat[3]);
+    }
+
+    /* Step 2: Compute the first product temp = q ⊗ v.
+     *
+     * Quaternion multiplication (a⊗b) is:
+     *   w = aw*bw - ax*bx - ay*by - az*bz
+     *   x = aw*bx + ax*bw + ay*bz - az*by
+     *   y = aw*by - ax*bz + ay*bw + az*bx
+     *   z = aw*bz + ax*by - ay*bx + az*bw
+     *
+     * With v's scalar component equal to zero the formulas collapse neatly. */
+    const double w = q[0];
+    const double x = q[1];
+    const double y = q[2];
+    const double z = q[3];
+
+    const double vx = v_quat[1];
+    const double vy = v_quat[2];
+    const double vz = v_quat[3];
+
+    double temp[4];
+    temp[0] = -x * vx - y * vy - z * vz;
+    temp[1] =  w * vx + y * vz - z * vy;
+    temp[2] =  w * vy + z * vx - x * vz;
+    temp[3] =  w * vz + x * vy - y * vx;
+
+    if (g_quaternion_explicit_debug) {
+        printf("[explicit] Step 2 (temp=q⊗v): [%.6f, %.6f, %.6f, %.6f]\n",
+               temp[0], temp[1], temp[2], temp[3]);
+    }
+
+    /* Step 3: Form the conjugate q* = [w, -x, -y, -z].
+     * For unit quaternions the conjugate equals the inverse. */
+    const double q_conj[4] = {w, -x, -y, -z};
+    if (g_quaternion_explicit_debug) {
+        printf("[explicit] Step 3 (q_conj): [%.6f, %.6f, %.6f, %.6f]\n",
+               q_conj[0], q_conj[1], q_conj[2], q_conj[3]);
+    }
+
+    /* Step 4: Multiply the intermediate quaternion by the conjugate:
+     * result = temp ⊗ q*. */
+    const double cw = q_conj[0];
+    const double cx = q_conj[1];
+    const double cy = q_conj[2];
+    const double cz = q_conj[3];
+
+    double result[4];
+    result[0] = temp[0] * cw - temp[1] * cx - temp[2] * cy - temp[3] * cz;
+    result[1] = temp[0] * cx + temp[1] * cw + temp[2] * cz - temp[3] * cy;
+    result[2] = temp[0] * cy - temp[1] * cz + temp[2] * cw + temp[3] * cx;
+    result[3] = temp[0] * cz + temp[1] * cy - temp[2] * cx + temp[3] * cw;
+
+    if (g_quaternion_explicit_debug) {
+        printf("[explicit] Step 4 (result=temp⊗q*): [%.6f, %.6f, %.6f, %.6f]\n",
+               result[0], result[1], result[2], result[3]);
+    }
+
+    /* Step 5: The rotated vector is the imaginary part of the final quaternion. */
     v_out[0] = result[1];
     v_out[1] = result[2];
     v_out[2] = result[3];
+    if (g_quaternion_explicit_debug) {
+        printf("[explicit] Step 5 (rotated vector): [%.6f, %.6f, %.6f]\n",
+               v_out[0], v_out[1], v_out[2]);
+    }
+}
+
+void quaternion_set_explicit_debug(int enabled) {
+    g_quaternion_explicit_debug = enabled;
 }

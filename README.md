@@ -9,14 +9,15 @@ The **Attitude Math Library** is a C-based mathematical library designed for att
 ## Features
 
 - **Quaternion Operations**:
-  - Normalize and multiply quaternions.
-  - Convert between quaternions and Euler angles.
-  - Convert between quaternions and DCMs.
+  - Normalize, multiply, and invert quaternions.
+  - Convert between quaternions, Euler angles, and DCMs.
+  - Rotate vectors with both optimized and fully explicit formulations.
+  - Convert quaternions to axis-angle form and interpolate with SLERP.
 - **Euler Angles**:
   - Convert Euler angles to/from DCMs.
   - Convert Euler angles to/from quaternions.
 - **Direction Cosine Matrices (DCM)**:
-  - Verify orthonormality.
+  - Verify orthonormality with `dcm_is_orthonormal`.
   - Apply transformations to vectors.
 - **Vector Operations**:
   - Compute addition, subtraction, dot products, and cross products.
@@ -77,6 +78,12 @@ To use this library, you need:
 
 ### Library Functions
 
+Recent updates expose additional helpers:
+
+- `quaternion_inverse`, `quaternion_to_axis_angle`, `quaternion_rotate_vector`, and `quaternion_rotate_vector_explicit` are now part of the public API.
+- `dcm_is_orthonormal` can be used to sanity-check direction cosine matrices before they enter control loops.
+- Use `quaternion_set_explicit_debug(int enabled)` to toggle verbose tracing inside `quaternion_rotate_vector_explicit` when teaching or debugging the q⊗v⊗q* sequence.
+
 #### Quaternions
 - Convert quaternion to DCM:
   ```c
@@ -107,6 +114,30 @@ To use this library, you need:
 
 ---
 
+## Building and Running Tests
+
+All executables in `tests/` are picked up automatically by CMake.
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+- Run the entire suite: `ctest --test-dir build --output-on-failure`
+- List tests without executing: `ctest --test-dir build -N`
+- Run a specific binary, e.g. `./build/test_quaternion_rotate`
+
+### Educational demos
+
+- `test_quaternion_rotate` compares the optimized and explicit rotation helpers to guard against regressions.
+- `test_quaternion_rotate_explicit_demo` enables `quaternion_set_explicit_debug(1)` so you can watch each step in the explicit q⊗v⊗q* computation:
+  ```bash
+  ./build/test_quaternion_rotate_explicit_demo
+  ```
+  This is useful for walkthroughs or debugging orientation pipelines.
+
+---
+
 ## SEO Keywords
 
 - Drone attitude control
@@ -132,5 +163,3 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 ## Contact
 
 For questions, feedback, or collaboration, reach out to us at [anthony.shivakumar@antshiv.com].
-
-
