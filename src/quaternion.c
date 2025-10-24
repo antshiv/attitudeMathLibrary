@@ -112,18 +112,20 @@ int quaternion_to_axis_angle(const double q[4], double axis[3], double *angle) {
 }
 
 /**
- * Performs Spherical Linear Interpolation (SLERP) between two quaternions.
- * 
- * SLERP provides smooth interpolation between two orientations represented as quaternions,
- * maintaining constant angular velocity throughout the rotation.
- * 
- * @param q1[4]      First quaternion (starting orientation)
- * @param q2[4]      Second quaternion (ending orientation)
- * @param t          Interpolation parameter (0.0 to 1.0):
- *                   - t = 0.0 returns q1
- *                   - t = 1.0 returns q2
- *                   - t = 0.5 returns the midpoint
- * @param q_out[4]   Output quaternion (interpolated result)
+ * @brief Performs Spherical Linear Interpolation (SLERP) between two quaternions.
+ *
+ * @details SLERP provides a smooth, constant-velocity interpolation between two orientations.
+ * It travels along the shortest arc on a 4D unit sphere, ensuring the resulting
+ * rotation is natural and efficient. This is superior to simple linear interpolation (LERP)
+ * of quaternion components, which would produce rotations that slow down in the middle.
+ * The function handles the case where the quaternions are more than 90 degrees apart
+ * by taking the shorter path.
+ *
+ * @param[in]  q1      A 4-element array representing the starting quaternion [w, x, y, z].
+ * @param[in]  q2      A 4-element array representing the ending quaternion [w, x, y, z].
+ * @param[in]  t       The interpolation factor, clamped between 0.0 and 1.0.
+ *                     A value of 0.0 returns q1, and 1.0 returns q2.
+ * @param[out] q_out   A 4-element array to store the resulting interpolated quaternion.
  */
 void quaternion_slerp(const double q1[4], const double q2[4], double t, double q_out[4]) {
     // Calculate dot product to determine the angle between quaternions
