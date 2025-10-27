@@ -1,0 +1,23 @@
+PROJECT_NAME           = "C Attitude Math Library"
+PROJECT_BRIEF          = "Quaternion, Euler, and DCM math utilities for attitude control."
+OUTPUT_DIRECTORY       = docs/api
+CREATE_SUBDIRS         = YES
+OPTIMIZE_OUTPUT_FOR_C  = YES
+INPUT                  = README.md \
+                         include \
+                         src
+FILE_PATTERNS          = *.h \
+                         *.c \
+                         *.md
+RECURSIVE              = YES
+GENERATE_LATEX         = NO
+QUIET                  = NO
+WARN_AS_ERROR          = NO
+GENERATE_TREEVIEW      = YES
+EXTRACT_ALL            = YES
+FULL_PATH_NAMES        = NO
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = YES
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = YES
+SHOW_USED_FILES        = YES
