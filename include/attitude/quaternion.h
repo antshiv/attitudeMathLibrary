@@ -61,6 +61,38 @@ void quaternion_multiply(const double q1[4], const double q2[4], double q_out[4]
 int quaternion_inverse(const double q[4], double q_inv[4]);
 
 /**
+ * @brief Compute the relative rotation from the current orientation to a target orientation.
+ *
+ * Produces @f$ q_{\text{error}} = q_{\text{target}} \otimes q_{\text{current}}^{-1} @f$.
+ * With this library's multiplication convention, applying @p q_error after @p q_current
+ * reconstructs @p q_target. The result is normalised and sign-adjusted so the scalar
+ * component is non-negative, giving the shortest equivalent rotation representation.
+ *
+ * @param q_current Current orientation quaternion.
+ * @param q_target  Desired target orientation quaternion.
+ * @param q_error   Output relative rotation from current to target.
+ * @return 1 on success, 0 when @p q_current cannot be inverted.
+ */
+int quaternion_relative(const double q_current[4], const double q_target[4], double q_error[4]);
+
+/**
+ * @brief Compute current-to-target orientation error as an axis-angle command.
+ *
+ * This is useful for controller/debug flows where a camera tracker or planner provides a
+ * target attitude and the control loop needs a rotation axis plus angle magnitude.
+ *
+ * @param q_current Current orientation quaternion.
+ * @param q_target  Desired target orientation quaternion.
+ * @param axis      Output unit correction axis.
+ * @param angle     Output correction angle in radians.
+ * @return 1 on success, 0 when the relative rotation cannot be computed.
+ */
+int quaternion_orientation_error_axis_angle(const double q_current[4],
+                                            const double q_target[4],
+                                            double axis[3],
+                                            double *angle);
+
+/**
  * @brief Convert a quaternion to axis-angle representation.
  *
  * Produces a unit rotation axis and right-handed rotation angle in radians.

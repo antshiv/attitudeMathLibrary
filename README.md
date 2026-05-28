@@ -57,19 +57,37 @@ To use this library, you need:
 
 2. Build the library:
    ```bash
-   mkdir build
-   cd build
-   cmake ..
    make
    ```
 
 3. Link the library to your project. Include the header files and link the compiled library binary during the build process.
+
+The root `Makefile` is a small wrapper around CMake. It keeps CMake as the source of truth while making the common commands easier to remember:
+
+```bash
+make help
+make test
+make test-list
+make test-list-details
+make test-quaternion-relative
+make test_quaternion_relative
+make run_quaternion_relative
+```
+
+If you prefer raw CMake:
+
+```bash
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
 ### File Structure
 
 - `src/`: Contains source files for the library.
 - `include/`: Header files for the library.
 - `CMakeLists.txt`: Build configuration.
+- `Makefile`: Convenience wrapper for common CMake/CTest commands.
 - `README.md`: Documentation (this file).
 
 ---
@@ -81,6 +99,8 @@ To use this library, you need:
 Recent updates expose additional helpers:
 
 - `quaternion_inverse`, `quaternion_to_axis_angle`, `quaternion_rotate_vector`, and `quaternion_rotate_vector_explicit` are now part of the public API.
+- `quaternion_relative` computes the current-to-target correction quaternion for control and tracking flows.
+- `quaternion_orientation_error_axis_angle` converts that correction into a rotation axis and angle.
 - `dcm_is_orthonormal` can be used to sanity-check direction cosine matrices before they enter control loops.
 - Use `quaternion_set_explicit_debug(int enabled)` to toggle verbose tracing inside `quaternion_rotate_vector_explicit` when teaching or debugging the q⊗v⊗q* sequence.
 
@@ -94,6 +114,23 @@ Recent updates expose additional helpers:
 - Normalize a quaternion:
   ```c
   quaternion_normalize(q);
+  ```
+- Compute the correction from current orientation to target orientation:
+  ```c
+  double q_current[4]; // estimated drone/camera orientation
+  double q_target[4];  // desired orientation
+  double q_error[4];
+
+  if (quaternion_relative(q_current, q_target, q_error)) {
+      // q_target ~= q_error ⊗ q_current
+  }
+  ```
+- Convert that correction into an axis-angle command:
+  ```c
+  double axis[3];
+  double angle;
+
+  quaternion_orientation_error_axis_angle(q_current, q_target, axis, &angle);
   ```
 
 #### Euler Angles
@@ -119,13 +156,28 @@ Recent updates expose additional helpers:
 All executables in `tests/` are picked up automatically by CMake.
 
 ```bash
-cmake -S . -B build
-cmake --build build
+make
 ```
 
-- Run the entire suite: `ctest --test-dir build --output-on-failure`
-- List tests without executing: `ctest --test-dir build -N`
-- Run a specific binary, e.g. `./build/test_quaternion_rotate`
+- Run the entire suite: `make test`
+- List tests without executing: `make test-list`
+- Explain what each test covers: `make test-list-details`
+- Run the current-to-target quaternion test through CTest: `make test-quaternion-relative` or `make test_quaternion_relative`
+- Build and run the current-to-target quaternion demo binary directly: `make run-quaternion-relative` or `make run_quaternion_relative`
+- Run a specific binary directly, e.g. `./build/test_quaternion_rotate`
+
+Inside the generated `build/` directory, the CMake target name is the executable name, not the source path. For example:
+
+```bash
+cd build
+make test_quaternion_relative
+```
+
+not:
+
+```bash
+make tests/test_quaternion_relative
+```
 
 ### Educational demos
 

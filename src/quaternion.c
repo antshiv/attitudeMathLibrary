@@ -94,6 +94,37 @@ int quaternion_inverse(const double q[4], double q_inv[4]) {
     return 1; // Success
 }
 
+int quaternion_relative(const double q_current[4], const double q_target[4], double q_error[4]) {
+    double q_current_inv[4];
+    if (!quaternion_inverse(q_current, q_current_inv)) {
+        return 0;
+    }
+
+    quaternion_multiply(q_target, q_current_inv, q_error);
+    quaternion_normalize(q_error);
+
+    // q and -q represent the same rotation. Prefer the shortest positive-scalar form.
+    if (q_error[0] < 0.0) {
+        for (int i = 0; i < 4; ++i) {
+            q_error[i] = -q_error[i];
+        }
+    }
+
+    return 1;
+}
+
+int quaternion_orientation_error_axis_angle(const double q_current[4],
+                                            const double q_target[4],
+                                            double axis[3],
+                                            double *angle) {
+    double q_error[4];
+    if (!quaternion_relative(q_current, q_target, q_error)) {
+        return 0;
+    }
+
+    return quaternion_to_axis_angle(q_error, axis, angle);
+}
+
 int quaternion_to_axis_angle(const double q[4], double axis[3], double *angle) {
     double w = q[0];
     double norm_vec = sqrt(q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
