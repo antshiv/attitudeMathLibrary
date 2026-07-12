@@ -2,7 +2,7 @@ BUILD_DIR ?= build
 CMAKE ?= cmake
 CTEST ?= ctest
 
-.PHONY: all help configure build test test-list test-list-details test-quaternion-relative test_quaternion_relative run-quaternion-relative run_quaternion_relative clean distclean
+.PHONY: all help configure build test test-list test-list-details test-scipy-parity test_scipy_parity test-quaternion-relative test_quaternion_relative run-quaternion-relative run_quaternion_relative clean distclean
 
 all: build
 
@@ -14,6 +14,7 @@ help:
 	@printf "  make test                    Run the full CTest suite\n"
 	@printf "  make test-list               List discovered CTest tests\n"
 	@printf "  make test-list-details       Explain what each current test covers\n"
+	@printf "  make test-scipy-parity       Compare the compiled C ABI with SciPy Rotation\n"
 	@printf "  make test-quaternion-relative Run only the current-to-target quaternion test\n"
 	@printf "  make test_quaternion_relative Alias for test-quaternion-relative\n"
 	@printf "  make run-quaternion-relative  Build and run ./$(BUILD_DIR)/test_quaternion_relative\n"
@@ -54,6 +55,12 @@ test-list-details:
 	@printf "  test_quaternion_rotate_explicit_demo Explicit q*v*q conjugate debug demo\n"
 	@printf "  test_quaternion_slerp          SLERP interpolation tests\n"
 	@printf "  test_rotation                  Rotation helper tests\n"
+	@printf "  test_scipy_quaternion_parity   Compiled C ABI parity with SciPy Rotation\n"
+
+test-scipy-parity: build
+	$(CTEST) --test-dir $(BUILD_DIR) -R '^test_scipy_quaternion_parity$$' --output-on-failure
+
+test_scipy_parity: test-scipy-parity
 
 test-quaternion-relative: build
 	$(CTEST) --test-dir $(BUILD_DIR) -R '^test_quaternion_relative$$' --output-on-failure
