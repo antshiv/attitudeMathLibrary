@@ -12,6 +12,7 @@ set(SOURCES
     src/quaternion.c
     src/vector3.c
     src/attitude_utils.c
+    src/validation.c
 )
 
 # Create the library

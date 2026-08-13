@@ -1,4 +1,5 @@
 #include "attitude/quaternion.h"
+#include "attitude/attitude_utils.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -43,7 +44,7 @@ void quaternion_to_euler(const double q[4], double *roll, double *pitch, double 
 
     double sinp = 2.0 * (w * y - z * x);
     if (fabs(sinp) >= 1.0) {
-        *pitch = copysign(M_PI / 2, sinp);
+        *pitch = copysign(ATTITUDE_PI / 2, sinp);
     } else {
         *pitch = asin(sinp);
     }

@@ -13,7 +13,7 @@ int main() {
 
     // Convert back
     double roll, pitch, yaw;
-    dcm_to_euler(dcm, &roll, &pitch, &yaw);
+    dcm_to_euler((const double (*)[3])dcm, &roll, &pitch, &yaw);
 
     double roll_deg_out = rad2deg(roll);
     double pitch_deg_out = rad2deg(pitch);
@@ -21,7 +21,6 @@ int main() {
 
     printf("Original: (30°,45°,90°)  Recovered: (%.2f°, %.2f°, %.2f°)\n", roll_deg_out, pitch_deg_out, yaw_deg_out);
 
-    // Add checks for deviation and print test result
-    return 0;
+    const double error = fabs(roll - e.roll) + fabs(pitch - e.pitch) + fabs(yaw - e.yaw);
+    return error < 1e-12 ? 0 : 1;
 }
-

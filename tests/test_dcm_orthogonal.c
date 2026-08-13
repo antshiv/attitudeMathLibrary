@@ -10,7 +10,7 @@ int main() {
 
     euler_to_dcm(&e, dcm);
 
-    int is_ortho = dcm_is_orthonormal(dcm, 1e-9);
+    int is_ortho = dcm_is_orthonormal((const double (*)[3])dcm, 1e-9);
     if (!is_ortho) {
         printf("FAIL: DCM is not orthonormal.\n");
         return 1;
@@ -20,4 +20,3 @@ int main() {
 
     return 0;
 }
-

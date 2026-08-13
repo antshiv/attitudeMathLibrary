@@ -6,7 +6,7 @@
 #include "attitude/attitude_utils.h"
 
 int main() {
-    EulerAngles e = {0.0, M_PI/4, M_PI/2}; // roll=0, pitch=45°, yaw=90°
+    EulerAngles e = {0.0, M_PI/4, M_PI/2, EULER_ZYX}; // roll=0, pitch=45°, yaw=90°
     double dcm[3][3];
 
     printf("The original angles in (deg): roll=%.2f, pitch=%.2f, yaw=%.2f\n", rad2deg(e.roll), rad2deg(e.pitch), rad2deg(e.yaw));
@@ -19,7 +19,7 @@ int main() {
     printf("Quaternion: w=%.3f, x=%.3f, y=%.3f, z=%.3f\n", q[0], q[1], q[2], q[3]);
 
     double roll, pitch, yaw;
-    dcm_to_euler(dcm, &roll, &pitch, &yaw);
+    dcm_to_euler((const double (*)[3])dcm, &roll, &pitch, &yaw);
 
 
     // Convert back to degrees
@@ -32,4 +32,3 @@ int main() {
 
     return 0;
 }
-

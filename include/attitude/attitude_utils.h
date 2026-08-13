@@ -8,11 +8,12 @@ extern "C" {
 /**
  * @brief Macro helper converting degrees to radians.
  */
-#define DEG2RAD(x) ((x) * M_PI / 180.0)
+#define ATTITUDE_PI 3.14159265358979323846264338327950288
+#define DEG2RAD(x) ((x) * ATTITUDE_PI / 180.0)
 /**
  * @brief Macro helper converting radians to degrees.
  */
-#define RAD2DEG(x) ((x) * 180.0 / M_PI)
+#define RAD2DEG(x) ((x) * 180.0 / ATTITUDE_PI)
 
 /**
  * @brief Convert degrees to radians.
