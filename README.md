@@ -4,6 +4,8 @@
 
 The **Attitude Math Library** is a C-based mathematical library designed for attitude control applications, providing robust support for quaternion operations, Euler angle conversions, direction cosine matrices (DCMs), and vector math. This library serves as a foundation for building attitude control systems in drones and robotics.
 
+[Read the compiled documentation](https://antshiv.github.io/attitudeMathLibrary/) for the current conventions, validation boundary, and generated C API.
+
 ---
 
 ## Features
@@ -51,8 +53,8 @@ To use this library, you need:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/attitude-math-library.git
-   cd attitude-math-library
+   git clone https://github.com/antshiv/attitudeMathLibrary.git
+   cd attitudeMathLibrary
    ```
 
 2. Build the library:
@@ -102,6 +104,7 @@ Recent updates expose additional helpers:
 - `quaternion_relative` computes the current-to-target correction quaternion for control and tracking flows.
 - `quaternion_orientation_error_axis_angle` converts that correction into a rotation axis and angle.
 - `dcm_is_orthonormal` can be used to sanity-check direction cosine matrices before they enter control loops.
+- Checked conversion APIs reject unsupported Euler orders, non-finite inputs, reflections, and malformed DCMs instead of silently returning plausible output.
 - Use `quaternion_set_explicit_debug(int enabled)` to toggle verbose tracing inside `quaternion_rotate_vector_explicit` when teaching or debugging the q⊗v⊗q* sequence.
 
 #### Quaternions
@@ -188,6 +191,25 @@ make tests/test_quaternion_relative
   ```
   This is useful for walkthroughs or debugging orientation pipelines.
 
+### Embedded validation
+
+`attitude_validation_run()` contains deterministic, heap-free fixtures shared by host CTest and the Zephyr sample. It checks ordinary rotations, 180-degree rotations, gimbal-lock orientations, quaternion/DCM/Euler reconstruction, and invalid-input rejection.
+
+Build the sample for any supported Zephyr board:
+
+```bash
+west build -p always -b nrf5340dk_nrf5340_cpuapp samples/zephyr
+```
+
+This repository can also use the W530 as a remote build-and-flash station while source remains on the primary development laptop:
+
+```bash
+./scripts/validate_zephyr_remote.sh
+BOARD=mimxrt1170_evk_cm7 ./scripts/validate_zephyr_remote.sh
+```
+
+The nRF5340 command builds, flashes J-Link probe `960169267`, captures the stable `if04` virtual serial port, and fails unless the board emits `ATTITUDE_VALIDATION PASS`. Other boards currently perform a cross-build only; add their probe and console contract before treating them as hardware evidence.
+
 ---
 
 ## SEO Keywords
@@ -208,7 +230,8 @@ Contributions are welcome! Feel free to fork the repository, create a new branch
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+The repository does not currently contain a license file. Until one is added,
+no open-source permission should be inferred from this source being public.
 
 ---
 

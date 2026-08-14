@@ -24,6 +24,15 @@ Double3 = ctypes.c_double * 3
 Double9 = ctypes.c_double * 9
 
 
+class EulerAngles(ctypes.Structure):
+    _fields_ = [
+        ("roll", ctypes.c_double),
+        ("pitch", ctypes.c_double),
+        ("yaw", ctypes.c_double),
+        ("order", ctypes.c_int),
+    ]
+
+
 def _as_double4(values: np.ndarray) -> Double4:
     return Double4(*(float(value) for value in values))
 
@@ -87,6 +96,26 @@ class AttitudeABI:
         ]
         self.lib.quaternion_slerp.restype = None
 
+        self.lib.euler_to_dcm_checked.argtypes = [
+            ctypes.POINTER(EulerAngles),
+            ctypes.POINTER(ctypes.c_double),
+        ]
+        self.lib.euler_to_dcm_checked.restype = ctypes.c_int
+
+        self.lib.dcm_to_euler_checked.argtypes = [
+            ctypes.POINTER(ctypes.c_double),
+            ctypes.POINTER(ctypes.c_double),
+            ctypes.POINTER(ctypes.c_double),
+            ctypes.POINTER(ctypes.c_double),
+        ]
+        self.lib.dcm_to_euler_checked.restype = ctypes.c_int
+
+        self.lib.dcm_to_quaternion_checked.argtypes = [
+            ctypes.POINTER(ctypes.c_double),
+            ctypes.POINTER(ctypes.c_double),
+        ]
+        self.lib.dcm_to_quaternion_checked.restype = ctypes.c_int
+
     def dcm(self, quaternion_wxyz: np.ndarray) -> np.ndarray:
         q = _as_double4(quaternion_wxyz)
         matrix = Double9()
@@ -129,6 +158,32 @@ class AttitudeABI:
         self.lib.quaternion_slerp(start, end, t, output)
         return _array(output)
 
+    def euler_dcm(self, euler_zyx: np.ndarray) -> np.ndarray:
+        yaw, pitch, roll = (float(value) for value in euler_zyx)
+        angles = EulerAngles(roll=roll, pitch=pitch, yaw=yaw, order=0)
+        matrix = Double9()
+        if self.lib.euler_to_dcm_checked(ctypes.byref(angles), matrix) != 1:
+            raise AssertionError("C euler_to_dcm_checked rejected finite ZYX angles")
+        return _array(matrix).reshape(3, 3)
+
+    def dcm_euler(self, matrix: np.ndarray) -> np.ndarray:
+        source = Double9(*(float(value) for value in matrix.reshape(-1)))
+        roll = ctypes.c_double()
+        pitch = ctypes.c_double()
+        yaw = ctypes.c_double()
+        if self.lib.dcm_to_euler_checked(
+            source, ctypes.byref(roll), ctypes.byref(pitch), ctypes.byref(yaw)
+        ) != 1:
+            raise AssertionError("C dcm_to_euler_checked rejected a SciPy rotation matrix")
+        return np.array([yaw.value, pitch.value, roll.value], dtype=np.float64)
+
+    def dcm_quaternion(self, matrix: np.ndarray) -> np.ndarray:
+        source = Double9(*(float(value) for value in matrix.reshape(-1)))
+        output = Double4()
+        if self.lib.dcm_to_quaternion_checked(source, output) != 1:
+            raise AssertionError("C dcm_to_quaternion_checked rejected a SciPy rotation matrix")
+        return _array(output)
+
 
 def _scipy_rotation(quaternion_wxyz: np.ndarray) -> Rotation:
     return Rotation.from_quat(quaternion_wxyz, scalar_first=True)
@@ -168,6 +223,9 @@ def run(library: Path, samples: int, seed: int, tolerance: float) -> None:
         "inverse": 0.0,
         "relative": 0.0,
         "slerp": 0.0,
+        "euler_dcm": 0.0,
+        "dcm_euler": 0.0,
+        "dcm_quat": 0.0,
     }
 
     for index in range(samples):
@@ -175,10 +233,37 @@ def run(library: Path, samples: int, seed: int, tolerance: float) -> None:
         right_rotation = rotations[samples + index]
         left_q = quaternions[index]
         right_q = quaternions[samples + index]
+        left_matrix = left_rotation.as_matrix()
 
         maxima["dcm"] = max(
             maxima["dcm"],
             _matrix_distance(abi.dcm(left_q), left_rotation.as_matrix()),
+        )
+
+        # SciPy returns [yaw, pitch, roll] for an intrinsic ZYX sequence.
+        euler_zyx = left_rotation.as_euler("ZYX")
+        maxima["euler_dcm"] = max(
+            maxima["euler_dcm"],
+            _matrix_distance(abi.euler_dcm(euler_zyx), left_matrix),
+        )
+
+        recovered_euler = abi.dcm_euler(left_matrix)
+        maxima["dcm_euler"] = max(
+            maxima["dcm_euler"],
+            _matrix_distance(
+                Rotation.from_euler("ZYX", recovered_euler).as_matrix(),
+                left_matrix,
+            ),
+        )
+
+        maxima["dcm_quat"] = max(
+            maxima["dcm_quat"],
+            _assert_rotation_equal(
+                "DCM to quaternion",
+                abi.dcm_quaternion(left_matrix),
+                left_rotation,
+                tolerance,
+            ),
         )
 
         actual_vector = abi.rotate(left_q, vectors[index])

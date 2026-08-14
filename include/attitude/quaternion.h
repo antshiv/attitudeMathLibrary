@@ -107,6 +107,9 @@ int quaternion_to_axis_angle(const double q[4], double axis[3], double *angle);
 /**
  * @brief Interpolate two quaternions using spherical linear interpolation (SLERP).
  *
+ * Interpolates along the shortest unit-quaternion arc. The interpolation
+ * parameter is clamped to @f$[0, 1]@f$.
+ *
  * @param q1     Start quaternion.
  * @param q2     End quaternion.
  * @param t      Interpolation parameter in @f$[0, 1]@f$.

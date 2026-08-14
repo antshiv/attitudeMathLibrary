@@ -12,6 +12,7 @@ set(SOURCES
     src/quaternion.c
     src/vector3.c
     src/attitude_utils.c
+    src/validation.c
 )
 
 # Create the library
@@ -45,7 +46,20 @@ foreach(TEST_SOURCE ${TEST_SOURCES})
 endforeach()
 
 find_package(Python3 COMPONENTS Interpreter)
-if(Python3_Interpreter_FOUND)
+find_program(UV_EXECUTABLE uv)
+if(UV_EXECUTABLE)
+    add_test(
+        NAME test_scipy_quaternion_parity
+        COMMAND ${UV_EXECUTABLE} run
+                --isolated
+                --no-project
+                --with numpy>=2,<3
+                --with scipy>=1.14,<2
+                python
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/reference/test_scipy_quaternion_parity.py
+                --library $<TARGET_FILE:attitude_shared>
+    )
+elseif(Python3_Interpreter_FOUND)
     set(
         ATTITUDE_REFERENCE_PYTHON
         "${Python3_EXECUTABLE}"

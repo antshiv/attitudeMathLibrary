@@ -8,7 +8,8 @@ extern "C" {
 /**
  * @brief Enumeration of supported Euler rotation orders.
  *
- * The library uses intrinsic rotations; additional orders can be added as required.
+ * The library currently implements intrinsic ZYX rotations. The other values are
+ * reserved so callers can reject unsupported inputs through the checked API.
  */
 typedef enum {
     EULER_ZYX, ///< Standard aerospace yaw → pitch → roll sequence.
@@ -39,12 +40,26 @@ typedef struct {
 void euler_to_dcm(const EulerAngles *e, double dcm[3][3]);
 
 /**
+ * @brief Checked Euler-to-DCM conversion.
+ *
+ * @return 1 on success, 0 for null pointers, non-finite angles, or an unsupported order.
+ */
+int euler_to_dcm_checked(const EulerAngles *e, double dcm[3][3]);
+
+/**
  * @brief Convert Euler angles to a quaternion.
  *
  * @param e  Euler angle container in radians.
  * @param q  Output quaternion in @f$[w, x, y, z]@f$ order.
  */
 void euler_to_quaternion(const EulerAngles *e, double q[4]);
+
+/**
+ * @brief Checked Euler-to-quaternion conversion.
+ *
+ * @return 1 on success, 0 for null pointers, non-finite angles, or an unsupported order.
+ */
+int euler_to_quaternion_checked(const EulerAngles *e, double q[4]);
 
 #ifdef __cplusplus
 }

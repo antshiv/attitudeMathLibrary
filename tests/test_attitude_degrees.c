@@ -16,6 +16,7 @@ int main() {
     e.roll = deg2rad(roll_deg);
     e.pitch = deg2rad(pitch_deg);
     e.yaw = deg2rad(yaw_deg);
+    e.order = EULER_ZYX;
 
     // Convert Euler angles (radians) to DCM
     double dcm[3][3];
@@ -23,7 +24,7 @@ int main() {
 
     // Convert DCM back to Euler angles (in radians)
     double roll_rad_out, pitch_rad_out, yaw_rad_out;
-    dcm_to_euler(dcm, &roll_rad_out, &pitch_rad_out, &yaw_rad_out);
+    dcm_to_euler((const double (*)[3])dcm, &roll_rad_out, &pitch_rad_out, &yaw_rad_out);
 
     // Convert back to degrees
     double roll_deg_out = rad2deg(roll_rad_out);
@@ -48,4 +49,3 @@ int main() {
 
     return success ? 0 : 1;
 }
-

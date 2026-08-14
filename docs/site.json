@@ -1,0 +1,13 @@
+{
+  "project_name": "attitudeMathLibrary",
+  "project_mark": "AM",
+  "tagline": "Rotation mathematics and conventions in C",
+  "site_url": "https://antshiv.github.io/attitudeMathLibrary",
+  "repository_url": "https://github.com/antshiv/attitudeMathLibrary",
+  "navigation": [
+    ["Home", "index.html", "home"],
+    ["Conventions", "conventions.html", "conventions"],
+    ["Validation", "validation.html", "validation"],
+    ["C API", "api.html", "api"]
+  ]
+}

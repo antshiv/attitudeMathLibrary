@@ -18,6 +18,19 @@ extern "C" {
 void dcm_to_euler(const double dcm[3][3], double *roll, double *pitch, double *yaw);
 
 /**
+ * @brief Checked DCM-to-Euler conversion.
+ *
+ * Gimbal-lock inputs use the canonical solution roll = 0 while preserving the
+ * represented orientation.
+ *
+ * @return 1 on success, 0 for null pointers or a non-orthonormal matrix.
+ */
+int dcm_to_euler_checked(const double dcm[3][3],
+                         double *roll,
+                         double *pitch,
+                         double *yaw);
+
+/**
  * @brief Check whether a DCM is orthonormal within a tolerance.
  *
  * @param dcm Input rotation matrix.
@@ -33,6 +46,13 @@ int dcm_is_orthonormal(const double dcm[3][3], double tol);
  * @param q   Output quaternion in @f$[w, x, y, z]@f$ order.
  */
 void dcm_to_quaternion(const double dcm[3][3], double q[4]);
+
+/**
+ * @brief Checked DCM-to-quaternion conversion.
+ *
+ * @return 1 on success, 0 for null pointers or a non-orthonormal matrix.
+ */
+int dcm_to_quaternion_checked(const double dcm[3][3], double q[4]);
 
 /**
  * @brief Apply a DCM to a vector.

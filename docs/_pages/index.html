@@ -1,0 +1,14 @@
+<!-- TITLE: Attitude Mathematics In C -->
+<!-- DESCRIPTION: Quaternion, Euler-angle, DCM, and vector mathematics with explicit conventions and independent validation. -->
+<!-- NAV: home -->
+<p class="eyebrow">Rotation mathematics · C ABI · Explicit conventions</p>
+<h1>The orientation layer beneath estimation and control.</h1>
+<p class="lead">This library keeps quaternion, Euler-angle, direction-cosine-matrix, and vector transformations in one small C boundary. The goal is not merely to produce numbers, but to make ordering, handedness, rotation direction, normalization, and singularities reviewable.</p>
+<div class="actions"><a class="button" href="conventions.html">Read the conventions</a><a class="button secondary" href="validation.html">Inspect validation</a></div>
+<div class="pipeline"><span>orientation input</span><b>→</b><span>checked transformation</span><b>→</b><span>quaternion / DCM / Euler</span><b>→</b><span>estimation + control</span></div>
+<h2>One mathematical foundation</h2>
+<div class="grid">
+  <article class="card"><span class="status">C library</span><h3>Quaternions</h3><p>Composition, inverse, normalization, relative orientation, axis-angle conversion, SLERP, and vector rotation.</p></article>
+  <article class="card"><span class="status">C library</span><h3>DCMs and Euler angles</h3><p>Checked conversions, orthonormality checks, supported rotation orders, and explicit singularity behavior.</p></article>
+  <article class="card"><span class="status">Foundation</span><h3>Vectors and utilities</h3><p>Dot, cross, normalization, magnitudes, angle wrapping, and unit conversion used by downstream numerical systems.</p></article>
+</div>
