@@ -12,6 +12,8 @@ FILE_PATTERNS          = *.h \
                          *.md
 RECURSIVE              = YES
 GENERATE_LATEX         = NO
+USE_MATHJAX            = YES
+HAVE_DOT               = NO
 QUIET                  = NO
 WARN_AS_ERROR          = FAIL_ON_WARNINGS
 GENERATE_TREEVIEW      = YES
