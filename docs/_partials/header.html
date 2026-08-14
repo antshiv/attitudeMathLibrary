@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PAGE_TITLE}} | {{PROJECT_NAME}}</title>
+  <meta name="description" content="{{META_DESCRIPTION}}">
+  <link rel="canonical" href="{{CANONICAL_URL}}">
+  <style>
+    :root { --ink:#15191f; --panel:#20262e; --line:#37404a; --paper:#f3eee4; --muted:#aeb7c2; --signal:#e8590c; --green:#78c091; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--ink); color:var(--paper); font:16px/1.65 Georgia, 'Times New Roman', serif; }
+    a { color:#ff9c68; }
+    .site-header { position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:.8rem max(1rem,calc((100vw - 1180px)/2)); background:rgba(21,25,31,.96); border-bottom:1px solid var(--line); backdrop-filter:blur(12px); }
+    .brand { display:flex; align-items:center; gap:.8rem; color:var(--paper); text-decoration:none; }
+    .brand-mark { display:grid; place-items:center; width:2.45rem; height:2.45rem; background:var(--signal); color:white; font:700 .78rem/1 ui-monospace,monospace; }
+    .brand strong { display:block; font:700 1rem/1.1 ui-sans-serif,sans-serif; }
+    .brand small { color:var(--muted); font:11px/1.2 ui-monospace,monospace; text-transform:uppercase; letter-spacing:.08em; }
+    nav { display:flex; flex-wrap:wrap; gap:.25rem; }
+    nav a { padding:.45rem .7rem; color:var(--muted); text-decoration:none; font:600 .78rem/1.2 ui-sans-serif,sans-serif; border:1px solid transparent; }
+    nav a:hover, nav a.active { color:var(--paper); border-color:var(--line); background:var(--panel); }
+    nav .repository-link { color:#ff9c68; }
+    main { width:min(1180px,calc(100% - 2rem)); margin:0 auto; padding:4.5rem 0 6rem; }
+    .eyebrow { color:var(--signal); font:700 .72rem/1.2 ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; }
+    h1,h2,h3 { font-family:ui-sans-serif,sans-serif; line-height:1.05; letter-spacing:-.035em; }
+    h1 { max-width:900px; margin:.7rem 0 1.2rem; font-size:clamp(2.7rem,7vw,6.3rem); }
+    h2 { margin-top:3.5rem; font-size:clamp(1.8rem,4vw,3rem); }
+    h3 { font-size:1.2rem; }
+    .lead { max-width:780px; color:#cbd2da; font-size:1.22rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1rem; margin:2rem 0; }
+    .card { padding:1.35rem; background:var(--panel); border:1px solid var(--line); }
+    .card p { color:var(--muted); }
+    .status { display:inline-block; padding:.22rem .5rem; color:var(--green); border:1px solid rgba(120,192,145,.45); font:700 .7rem/1.2 ui-monospace,monospace; text-transform:uppercase; }
+    .warning { padding:1.1rem 1.25rem; border-left:4px solid var(--signal); background:#251f1d; }
+    .pipeline { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; margin:2rem 0; }
+    .pipeline span { padding:.7rem .85rem; background:var(--panel); border:1px solid var(--line); font:700 .78rem/1.2 ui-monospace,monospace; }
+    .pipeline b { color:var(--signal); }
+    table { width:100%; border-collapse:collapse; margin:1.5rem 0; }
+    th,td { padding:.8rem; border:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:var(--panel); font-family:ui-sans-serif,sans-serif; }
+    code,pre { font-family:ui-monospace,SFMono-Regular,monospace; }
+    pre { overflow:auto; padding:1rem; background:#0e1115; border:1px solid var(--line); }
+    .actions { display:flex; flex-wrap:wrap; gap:.7rem; margin:1.6rem 0; }
+    .button { display:inline-block; padding:.7rem 1rem; color:white; background:var(--signal); text-decoration:none; font:700 .82rem/1 ui-sans-serif,sans-serif; }
+    .button.secondary { color:var(--paper); background:transparent; border:1px solid var(--line); }
+    footer { padding:2rem max(1rem,calc((100vw - 1180px)/2)); color:var(--muted); border-top:1px solid var(--line); font:12px/1.5 ui-monospace,monospace; }
+    @media (max-width:760px) { .site-header { position:static; align-items:flex-start; flex-direction:column; gap:.7rem; } main { padding-top:2.5rem; } nav a { padding:.35rem .45rem; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">{{PROJECT_MARK}}</span><span><strong>{{PROJECT_NAME}}</strong><small>{{TAGLINE}}</small></span></a>
+    <nav aria-label="Primary">{{NAVIGATION}}</nav>
+  </header>
+  <main>

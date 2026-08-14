@@ -4,6 +4,8 @@
 
 The **Attitude Math Library** is a C-based mathematical library designed for attitude control applications, providing robust support for quaternion operations, Euler angle conversions, direction cosine matrices (DCMs), and vector math. This library serves as a foundation for building attitude control systems in drones and robotics.
 
+[Read the compiled documentation](https://antshiv.github.io/attitudeMathLibrary/) for the current conventions, validation boundary, and generated C API.
+
 ---
 
 ## Features
@@ -51,8 +53,8 @@ To use this library, you need:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/attitude-math-library.git
-   cd attitude-math-library
+   git clone https://github.com/antshiv/attitudeMathLibrary.git
+   cd attitudeMathLibrary
    ```
 
 2. Build the library:
@@ -228,7 +230,8 @@ Contributions are welcome! Feel free to fork the repository, create a new branch
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+The repository does not currently contain a license file. Until one is added,
+no open-source permission should be inferred from this source being public.
 
 ---
 

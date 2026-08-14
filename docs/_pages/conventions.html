@@ -1,0 +1,17 @@
+<!-- TITLE: Rotation Conventions -->
+<!-- DESCRIPTION: Quaternion ordering, coordinate frames, handedness, Euler sequences, and rotation ownership. -->
+<!-- NAV: conventions -->
+<p class="eyebrow">A correct equation can still encode the wrong rotation</p>
+<h1>Conventions are part of the API.</h1>
+<p class="lead">Quaternion multiplication order, active versus passive interpretation, frame direction, and Euler sequence cannot be left to caller intuition. Downstream estimation and control code must consume the same contract.</p>
+<table>
+  <thead><tr><th>Contract</th><th>What callers must establish</th><th>Failure if ambiguous</th></tr></thead>
+  <tbody>
+    <tr><td>Quaternion layout</td><td>Scalar-first <code>[w,x,y,z]</code> wherever the public API declares quaternion arrays</td><td>Valid-looking but incorrect rotations</td></tr>
+    <tr><td>Composition</td><td>Current-to-target correction and multiplication direction are named at the call site</td><td>Controller commands rotate away from the target</td></tr>
+    <tr><td>Euler order</td><td>The supported intrinsic/extrinsic sequence is explicit</td><td>Different orientation from identical angles</td></tr>
+    <tr><td>DCM validity</td><td>Orthonormality, determinant, finite values, and reflection rejection are checked</td><td>Malformed matrices silently become orientation state</td></tr>
+    <tr><td>Units</td><td>Angles use radians inside numerical APIs unless explicitly converted</td><td>Scale errors survive compilation</td></tr>
+  </tbody>
+</table>
+<p>The exact accepted contract is enforced by checked functions and fixtures. Documentation describes that contract; tests decide whether an implementation still satisfies it.</p>

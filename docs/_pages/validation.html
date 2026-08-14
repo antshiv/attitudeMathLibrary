@@ -1,0 +1,15 @@
+<!-- TITLE: Attitude Validation -->
+<!-- DESCRIPTION: Deterministic fixtures and independent SciPy parity for quaternion, Euler, DCM, and vector transformations. -->
+<!-- NAV: validation -->
+<p class="eyebrow">Numerical evidence</p>
+<h1>Equivalent representations must reconstruct the same orientation.</h1>
+<p class="lead">Validation covers ordinary rotations, 180-degree cases, gimbal-lock neighborhoods, quaternion/DCM/Euler reconstruction, vector rotation, relative orientation, and invalid-input rejection.</p>
+<div class="grid">
+  <article class="card"><h3>Deterministic C fixtures</h3><p>Heap-free fixtures make the same mathematical cases available to host tests and eventual embedded integration.</p></article>
+  <article class="card"><h3>Independent oracle</h3><p>SciPy supplies a separately implemented rotation system for randomized parity rather than comparing one local function against another.</p></article>
+  <article class="card"><h3>Failure behavior</h3><p>Checked APIs reject unsupported orders, non-finite values, reflections, malformed DCMs, and zero-magnitude normalization.</p></article>
+</div>
+<pre><code>cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure</code></pre>
+<p>Board builds and hardware execution are integration evidence. They do not replace mathematical parity, and a successful cross-compile is not a hardware pass.</p>
